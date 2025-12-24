@@ -1,0 +1,472 @@
+<div class="container mt-5 mb-5">
+    <div class="row">
+        <!-- Sidebar: User Profile & Resumes -->
+        <div class="col-lg-4 mb-4" style="position: sticky; top: 100px; height: fit-content; z-index: 10;">
+            <!-- Profile Card -->
+            <div
+                class="glass-card mb-4 p-4 animate__animated animate__fadeInLeft d-flex flex-column align-items-center text-center">
+                <div class="mb-3">
+                    <!-- Configurable Avatar -->
+                    <label
+                        class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center fw-bold shadow-lg profile-avatar-container"
+                        style="width: 100px; height: 100px; font-size: 2.5rem; background-size: cover; background-position: center;"
+                        [style.background-image]="auth.currentUser()?.avatar ? 'url(' + auth.currentUser()?.avatar + ')' : ''">
+
+                        <span *ngIf="!auth.currentUser()?.avatar">{{ userName.charAt(0).toUpperCase() }}</span>
+
+                        <!-- Hover Overlay -->
+                        <div
+                            class="position-absolute w-100 h-100 d-flex justify-content-center align-items-center avatar-overlay rounded-circle">
+                            <i class="bi bi-camera-fill text-white fs-4"></i>
+                        </div>
+
+                        <input type="file" class="d-none" (change)="onProfilePicChange($event)" accept="image/*">
+                    </label>
+                </div>
+                <h3 class="fw-bold mb-1">{{ userName }}</h3>
+                <p class="text-muted mb-3">{{ auth.currentUser()?.email }}</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary btn-sm rounded-pill">
+                        <i class="bi bi-pencil-fill me-1"></i> {{ 'NAV.DASHBOARD' | translate }} Profile
+                    </button>
+                    <button class="btn btn-success btn-sm rounded-pill" (click)="openModal()">
+                        <i class="bi bi-plus-circle me-1"></i> {{ 'EDITOR.ADD_TRAINING' | translate }}
+                    </button>
+                    <button class="btn btn-danger btn-sm rounded-pill" (click)="logout()">
+                        <i class="bi bi-box-arrow-right me-1"></i> {{ 'NAV.LOGOUT' | translate }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Resumes Widget -->
+            <div class="glass-card p-3 animate__animated animate__fadeInLeft" style="animation-delay: 0.1s;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0 text-secondary">{{ 'DASHBOARD.YOUR_RESUMES' | translate }}</h5>
+                    <a routerLink="/editor" class="btn btn-sm btn-primary rounded-circle" title="Create New">
+                        <i class="bi bi-plus-lg"></i>
+                    </a>
+                </div>
+                <div *ngIf="resumes.length === 0" class="text-center py-3 text-muted">
+                    <small>{{ 'DASHBOARD.NO_RESUMES' | translate }}</small>
+                </div>
+                <div class="list-group list-group-flush">
+                    <div *ngFor="let resume of resumes"
+                        class="list-group-item bg-transparent px-0 border-bottom d-flex justify-content-between align-items-center">
+                        <div class="text-truncate" style="max-width: 150px;">
+                            <span class="fw-semibold d-block text-truncate">{{ resume.title }}</span>
+                            <small class="text-muted" style="font-size: 0.75rem;">{{ resume.updatedAt |
+                                locDate:'shortDate'
+                                }}</small>
+                        </div>
+                        <div>
+                            <a [routerLink]="['/editor', resume.id]" class="btn btn-sm btn-outline-secondary me-1 py-0"
+                                title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a [routerLink]="['/p', resume.id]" class="btn btn-sm btn-outline-primary me-1 py-0"
+                                target="_blank" title="View">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <button class="btn btn-sm btn-outline-danger py-0" (click)="deleteResume(resume.id)"
+                                title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Feed: Training & Updates -->
+        <div class="col-lg-8 animate__animated animate__fadeInRight">
+
+            <!-- Feed Header -->
+            <div class="d-flex justify-content-end mb-4">
+                <!-- Mobile Add Button -->
+                <button class="btn btn-primary rounded-pill d-lg-none" (click)="openModal()">
+                    <i class="bi bi-plus-lg me-1"></i> {{ 'EDITOR.ADD_TRAINING' | translate }}
+                </button>
+            </div>
+            <!-- Feed Items -->
+
+            <div *ngIf="mainFeed.length === 0" class="text-center py-5 glass-card">
+                <i class="bi bi-award display-1 text-muted opacity-25"></i>
+                <p class="mt-3 text-muted">{{ 'DASHBOARD.NO_RESUMES' | translate }}</p>
+                <button class="btn btn-primary mt-2 rounded-pill" (click)="openModal()">
+                    {{ 'EDITOR.ADD_TRAINING' | translate }}
+                </button>
+            </div>
+
+            <div *ngFor="let post of mainFeed" class="glass-card mb-4 animate__animated animate__fadeInUp">
+
+                <!-- 1. RESUME UPDATE POST (Personal Info & Skills) -->
+                <div *ngIf="post.type === 'resume'" [id]="'resume-post-' + post.id" class="position-relative">
+                    <div
+                        class="card-header bg-transparent border-0 d-flex align-items-center p-3 justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center me-3"
+                                [style.background-image]="auth.currentUser()?.avatar ? 'url(' + auth.currentUser()?.avatar + ')' : ''"
+                                [style.background-size]="'cover'"
+                                style="width: 45px; height: 45px; font-size: 1.2rem; overflow: hidden;">
+                                <span *ngIf="!auth.currentUser()?.avatar">{{ userName.charAt(0).toUpperCase() }}</span>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">{{ userName }}</h6>
+                                <small class="text-muted">
+                                    <i class="bi bi-person-lines-fill text-primary me-1"></i>
+                                    {{ 'DASHBOARD.UPDATE_RESUME' | translate }} &bull; {{ post.updatedAt |
+                                    locDate }}
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Export Button -->
+                        <div class="dropdown" data-html2canvas-ignore="true">
+                            <button
+                                class="btn btn-sm btn-info text-white fw-bold rounded-pill dropdown-toggle shadow-sm"
+                                type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-file-earmark-pdf"></i> Export
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                                <li>
+                                    <h6 class="dropdown-header">Select Theme</h6>
+                                </li>
+                                <li><a class="dropdown-item" href="javascript:void(0)"
+                                        (click)="exportPdf(post.id, 'default')">Default</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0)"
+                                        (click)="exportPdf(post.id, 'modern')">Modern (Blue)</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0)"
+                                        (click)="exportPdf(post.id, 'classic')">Classic (Serif)</a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a class="dropdown-item fw-bold text-primary" href="javascript:void(0)"
+                                        (click)="exportPdf(post.id, 'custom')">
+                                        <i class="bi bi-magic me-2"></i>Customize...
+                                    </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body px-4 pb-4">
+                        <div class="mb-3">
+                            <h4 class="fw-bold text-dark mb-1">{{ post.title }}</h4>
+                            <p class="text-muted small mb-3">
+                                <i class="bi bi-geo-alt me-1"></i>{{ post.personalInfo?.location }} &bull;
+                                <span class="text-success">{{ post.personalInfo?.phone }}</span>
+                            </p>
+                            <p class="fs-5 text-secondary fst-italic">"{{
+                                post.personalInfo?.summary || 'No summary provided.' }}"</p>
+                        </div>
+
+                        <div *ngIf="post.experience && post.experience.length > 0" class="mb-3">
+                            <h6 class="fw-bold text-primary mb-2"><i class="bi bi-briefcase me-2"></i>{{
+                                'EDITOR.EXPERIENCE' | translate }}</h6>
+                            <div *ngFor="let exp of post.experience" class="mb-2 ms-2 border-start border-2 px-3">
+                                <p class="fw-bold mb-0 text-dark">{{ exp.title }} <span class="text-muted fw-normal">at
+                                        {{ exp.company }}</span></p>
+                                <small class="text-muted d-block">{{ exp.startDate | locDate:'mediumDate' }} - {{
+                                    exp.currentlyWorking ? 'Present' : (exp.endDate | locDate:'mediumDate') }}</small>
+                                <p class="small text-secondary mt-1 mb-0">{{ exp.description }}</p>
+                            </div>
+                        </div>
+
+                        <div *ngIf="post.skills && post.skills.length > 0">
+                            <h6 class="fw-bold text-primary mb-2"><i class="bi bi-lightbulb me-2"></i>{{ 'EDITOR.SKILLS'
+                                | translate }}</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span *ngFor="let skill of post.skills"
+                                    class="badge bg-light text-primary border border-primary">{{
+                                    skill }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HIDDEN A4 EXPORT TEMPLATE reused -->
+                    <div [id]="'resume-pdf-' + post.id" class="d-none bg-white p-5 text-dark">
+                        <!-- Header -->
+                        <div class="custom-theme-scope">
+                            <header class="border-bottom pb-4 mb-4 d-flex align-items-center">
+                                <div *ngIf="auth.currentUser()?.avatar"
+                                    class="me-4 rounded-circle bg-light d-flex justify-content-center align-items-center shadow-sm"
+                                    style="width: 100px; height: 100px; min-width: 100px; background-size: cover; background-position: center;"
+                                    [style.background-image]="'url(' + auth.currentUser()?.avatar + ')'">
+                                </div>
+                                <div *ngIf="!auth.currentUser()?.avatar"
+                                    class="me-4 rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center"
+                                    style="width: 100px; height: 100px; font-size: 2.5rem;">
+                                    {{ userName.charAt(0).toUpperCase() }}
+                                </div>
+                                <div>
+                                    <h1 class="display-4 fw-bold text-uppercase text-primary">{{
+                                        post.personalInfo?.fullName || userName }}</h1>
+                                    <p class="lead mb-0">{{ post.title }}</p>
+                                    <div class="text-muted mt-2">
+                                        <span><i class="bi bi-envelope-fill me-2"></i>{{ post.personalInfo?.email ||
+                                            auth.currentUser()?.email }}</span>
+                                        <span class="mx-2">|</span>
+                                        <span *ngIf="post.personalInfo?.phone"><i
+                                                class="bi bi-telephone-fill me-2"></i>{{ post.personalInfo?.phone
+                                            }}</span>
+                                        <span class="mx-2" *ngIf="post.personalInfo?.phone">|</span>
+                                        <span *ngIf="post.personalInfo?.location"><i
+                                                class="bi bi-geo-alt-fill me-2"></i>{{ post.personalInfo?.location
+                                            }}</span>
+                                    </div>
+                                </div>
+                            </header>
+
+                            <div class="row">
+                                <!-- Left Column -->
+                                <div class="col-8">
+                                    <!-- Summary -->
+                                    <section class="mb-5" *ngIf="post.personalInfo?.summary">
+                                        <h4 class="text-uppercase fw-bold text-secondary mb-3">{{ 'EDITOR.SUMMARY' |
+                                            translate }}</h4>
+                                        <p>{{ post.personalInfo?.summary }}</p>
+                                    </section>
+
+                                    <!-- Experience -->
+                                    <section class="mb-5" *ngIf="post.experience && post.experience.length > 0">
+                                        <h4 class="text-uppercase fw-bold text-secondary mb-3">{{ 'EDITOR.EXPERIENCE' |
+                                            translate }}</h4>
+                                        <div *ngFor="let exp of post.experience" class="mb-4">
+                                            <div class="d-flex justify-content-between align-items-baseline">
+                                                <h5 class="fw-bold mb-0">{{ exp.title }}</h5>
+                                                <small class="text-muted">
+                                                    {{ exp.startDate | locDate }} - {{ exp.currentlyWorking ? 'Present'
+                                                    :
+                                                    (exp.endDate | locDate) }}
+                                                </small>
+                                            </div>
+                                            <h6 class="text-primary mb-2">{{ exp.company }}</h6>
+                                            <p>{{ exp.description }}</p>
+                                        </div>
+                                    </section>
+                                </div>
+
+                                <!-- Right Column -->
+                                <div class="col-4 border-start ps-4">
+                                    <!-- Skills -->
+                                    <section class="mb-5" *ngIf="post.skills && post.skills.length > 0">
+                                        <h4 class="text-uppercase fw-bold text-secondary mb-3">{{ 'EDITOR.SKILLS' |
+                                            translate }}</h4>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <span *ngFor="let skill of post.skills"
+                                                class="badge bg-light text-dark border">
+                                                {{ skill }}
+                                            </span>
+                                        </div>
+                                    </section>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. TRAINING POST (Restored & Simplified) -->
+                <div *ngIf="post.type === 'training'" [id]="'resume-pdf-' + post.id">
+                    <div
+                        class="card-header bg-transparent border-0 d-flex align-items-center p-3 justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center me-3"
+                                [style.background-image]="auth.currentUser()?.avatar ? 'url(' + auth.currentUser()?.avatar + ')' : ''"
+                                [style.background-size]="'cover'"
+                                style="width: 45px; height: 45px; font-size: 1.2rem; overflow: hidden;">
+                                <span *ngIf="!auth.currentUser()?.avatar">{{ userName.charAt(0).toUpperCase()
+                                    }}</span>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">{{ userName }}</h6>
+                                <small class="text-muted">
+                                    <i class="bi bi-patch-check-fill text-primary me-1"></i>
+                                    {{ 'DASHBOARD.ADDED_CERT' | translate }} &bull; {{ post.updatedAt |
+                                    locDate }}
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Actions Dropdown -->
+                        <div class="dropdown" data-html2canvas-ignore="true">
+                            <button class="btn btn-sm btn-light rounded-circle" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                <li>
+                                    <button class="dropdown-item" (click)="editTraining(post)">
+                                        <i class="bi bi-pencil me-2 text-warning"></i> Edit
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item text-danger" (click)="deleteTraining(post)">
+                                        <i class="bi bi-trash me-2"></i> Delete
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-0">
+                        <div class="px-4 pb-3">
+                            <h5 class="fw-bold text-dark mb-1">{{ post.name }}</h5>
+                            <p class="mb-1 text-secondary font-monospace"><i class="bi bi-building me-2"></i>{{
+                                post.issuer }}</p>
+                            <!-- Added Date Info as requested -->
+                            <small class="text-muted d-block mb-2" *ngIf="post.startDate || post.endDate">
+                                <i class="bi bi-calendar-event me-1"></i>
+                                {{ post.startDate | locDate }} - {{ post.endDate | locDate }}
+                            </small>
+                        </div>
+                        <div *ngIf="post.image" class="p-3 bg-light">
+                            <img [src]="post.image" class="img-fluid rounded shadow-sm"
+                                style="max-height: 500px; width: 100%; object-fit: cover;">
+                        </div>
+
+                        <div class="px-4 pb-4 pt-2">
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3"
+                                (click)="post.showDetails = !post.showDetails">
+                                {{ (post.showDetails ? 'DASHBOARD.HIDE_DETAILS' : 'DASHBOARD.VIEW_DETAILS') | translate
+                                }}
+                                <i class="bi" [class.bi-chevron-down]="!post.showDetails"
+                                    [class.bi-chevron-up]="post.showDetails"></i>
+                            </button>
+
+                            <div *ngIf="post.showDetails"
+                                class="mt-2 animate__animated animate__fadeIn p-3 bg-light rounded small">
+                                <div class="row mb-2">
+                                    <div class="col-6 mb-1" *ngIf="post.courseCode"><strong
+                                            class="text-primary">Code:</strong> {{ post.courseCode }}</div>
+                                    <div class="col-6 mb-1" *ngIf="post.skillType"><strong
+                                            class="text-primary">Type:</strong> {{ post.skillType }}</div>
+                                    <div class="col-6 mb-1" *ngIf="post.instructor"><strong
+                                            class="text-primary">Instructor:</strong> {{ post.instructor }}</div>
+                                    <div class="col-6 mb-1" *ngIf="post.trainingLevel"><strong
+                                            class="text-primary">Level:</strong> {{ post.trainingLevel }}</div>
+                                </div>
+                                <div *ngIf="post.learningObjective" class="mb-2 border-top pt-2">
+                                    <strong>Objective:</strong><br> {{ post.learningObjective }}
+                                </div>
+                                <div *ngIf="post.prerequisites" class="mb-2">
+                                    <strong>Prerequisites:</strong><br> {{ post.prerequisites }}
+                                </div>
+                                <div *ngIf="post.note" class="text-muted fst-italic border-top pt-2">
+                                    Note: {{ post.note }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Training Modal (Custom Overlay) -->
+    <div class="modal fade show d-block" tabindex="-1" *ngIf="showModal" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 bg-white text-dark">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark">{{ 'EDITOR.ADD_TRAINING' | translate }}</h5>
+                    <button type="button" class="btn-close" (click)="closeModal()"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <p class="text-muted small mb-4">Share your new achievement with the community.</p>
+                    <form [formGroup]="trainingForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">{{ 'EDITOR.CERT_NAME' | translate }} <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" class="form-control" formControlName="name" placeholder="Name"
+                                    [class.is-invalid]="trainingForm.get('name')?.invalid && trainingForm.get('name')?.touched">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">{{ 'EDITOR.COURSE_CODE' | translate }}</label>
+                                <input type="text" class="form-control" formControlName="courseCode" placeholder="Code">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">{{ 'EDITOR.ISSUER' | translate }} <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" class="form-control" formControlName="issuer" placeholder="Institute"
+                                    [class.is-invalid]="trainingForm.get('issuer')?.invalid && trainingForm.get('issuer')?.touched">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">{{ 'EDITOR.INSTRUCTOR' | translate }}</label>
+                                <input type="text" class="form-control" formControlName="instructor">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">{{ 'EDITOR.DELIVERY_MODE' | translate
+                                    }}</label>
+                                <select class="form-select" formControlName="deliveryMode">
+                                    <option value="online">Online</option>
+                                    <option value="onsite">Onsite</option>
+                                    <option value="hybrid">Hybrid</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">{{ 'EDITOR.TRAINING_LEVEL' | translate
+                                    }}</label>
+                                <select class="form-select" formControlName="trainingLevel">
+                                    <option value="beginner">Beginner</option>
+                                    <option value="intermediate">Intermediate</option>
+                                    <option value="advanced">Advanced</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">{{ 'EDITOR.SKILL_TYPE' | translate }}</label>
+                                <select class="form-select" formControlName="skillType">
+                                    <option value="Upskill">Upskill</option>
+                                    <option value="Reskill">Reskill</option>
+                                    <option value="Cross-skill">Cross-skill</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">{{ 'EDITOR.START_DATE' | translate }}</label>
+                                <input type="date" class="form-control" formControlName="startDate">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">{{ 'EDITOR.END_DATE' | translate }}</label>
+                                <input type="date" class="form-control" formControlName="endDate">
+                            </div>
+                            <!-- Hidden Date Field for Logic compatibility -->
+                            <input type="hidden" formControlName="date">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">{{ 'EDITOR.CERT_IMAGE' | translate }}</label>
+                            <div class="border rounded p-3 text-center bg-light"
+                                style="cursor: pointer; position: relative;">
+                                <input type="file" (change)="onFileChange($event)"
+                                    class="position-absolute top-0 start-0 w-100 h-100 opacity-0"
+                                    style="cursor: pointer;">
+                                <div *ngIf="!tempImage">
+                                    <i class="bi bi-cloud-upload display-6 text-primary mb-2"></i>
+                                    <p class="mb-0 text-muted">{{ 'EDITOR.UPLOAD_IMAGE' | translate }}</p>
+                                </div>
+                                <div *ngIf="tempImage" class="position-relative d-inline-block">
+                                    <img [src]="tempImage" class="img-fluid rounded shadow-sm"
+                                        style="max-height: 150px;">
+                                    <button type="button"
+                                        class="btn btn-sm btn-danger rounded-circle position-absolute top-0 end-0 m-1"
+                                        (click)="removeImage()" title="Remove Image">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" (click)="closeModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4" (click)="saveTraining()"
+                        [disabled]="trainingForm.invalid">
+                        {{ (editingTrainingId ? 'EDITOR.SAVE' : 'EDITOR.POST') | translate }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Designer Modal -->
+    <app-theme-designer *ngIf="showDesigner" (apply)="onThemeApplied($event)"
+        (close)="showDesigner = false"></app-theme-designer>
+</div>

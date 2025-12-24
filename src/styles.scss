@@ -1,0 +1,381 @@
+@import 'bootstrap/scss/bootstrap';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+@import 'animate.css/animate.min.css';
+
+/* Global Styles */
+html,
+body {
+  height: 100%;
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Premium Gradient */
+  background-attachment: fixed;
+}
+
+/* Glassmorphism Card Utility */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  /* Increased opacity for better contrast */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  /* Stronger shadow */
+  border-radius: 16px;
+  overflow: hidden;
+  /* Fix image overflow */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-5px);
+  /* Modern hover lift effect */
+  box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.25);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.5);
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.25);
+}
+
+.btn-premium {
+  background: linear-gradient(45deg, #FF512F 0%, #DD2476 100%);
+  border: none;
+  color: white;
+  font-weight: bold;
+  border-radius: 30px;
+  padding: 10px 25px;
+  transition: transform 0.2s;
+}
+
+.btn-premium:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(221, 36, 118, 0.4);
+  color: white;
+}
+
+/* Navbar Dark Premium (High Contrast & Fluid) */
+.navbar-glass {
+  background: rgba(15, 23, 42, 0.85) !important;
+  /* Slightly more transparent */
+  backdrop-filter: blur(20px);
+  /* Heavy blur */
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+  padding: 0.75rem 0;
+  /* More breathing room */
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.navbar-glass .navbar-brand {
+  color: #ffffff !important;
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.navbar-glass .nav-link {
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-weight: 500;
+  font-size: 0.95rem;
+  margin: 0 0.5rem;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+/* Fluid Hover Effect */
+.navbar-glass .nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0px;
+  left: 50%;
+  background: #a5b4fc;
+  /* Indigo tint */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(-50%);
+  opacity: 0;
+}
+
+.navbar-glass .nav-link:hover,
+.navbar-glass .nav-link.active {
+  color: #ffffff !important;
+  text-shadow: 0 0 15px rgba(165, 180, 252, 0.4);
+}
+
+.navbar-glass .nav-link:hover::after,
+.navbar-glass .nav-link.active::after {
+  width: 80%;
+  opacity: 1;
+}
+
+/* Modern Search Bar */
+.nav-search-container .input-group {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50px;
+  /* Pill shape */
+  padding: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.nav-search-container .input-group:focus-within {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.nav-search-icon {
+  background: transparent !important;
+  border: none !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  padding-left: 15px;
+}
+
+.nav-search-input {
+  background: transparent !important;
+  border: none !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  font-size: 0.9rem;
+}
+
+.nav-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Dropdown styling */
+.navbar-glass .dropdown-menu {
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  margin-top: 15px;
+  padding: 8px;
+  animation: fadeInDown 0.3s ease;
+}
+
+.navbar-glass .dropdown-item {
+  color: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  padding: 8px 16px;
+  transition: all 0.2s;
+}
+
+.navbar-glass .dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  transform: translateX(5px);
+}
+
+.navbar-glass .dropdown-divider {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Text adjustments for dark background */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.card-title {
+  color: #333;
+  /* Dark text inside cards */
+}
+
+body {
+  color: #fff;
+  /* White text on background */
+}
+
+.card-body,
+.glass-card {
+  color: #333;
+}
+
+a {
+  color: #e0e0e0;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+@media print {
+
+  .navbar,
+  .btn,
+  .no-print,
+  footer {
+    display: none !important;
+  }
+
+  body,
+  .container {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .shadow-lg {
+    box-shadow: none !important;
+  }
+
+  .resume-paper {
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Themes for PDF Export (Moved from Dashboard for Global Access) */
+
+/* Modern Theme (Header Banner) */
+.theme-modern {
+  background: #ffffff !important;
+  padding: 0 !important;
+  /* Remove container padding for full-width header */
+  border: 1px solid #e0e0e0;
+  overflow: hidden;
+  /* Clip header */
+  color: #333 !important;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+.theme-modern header {
+  background: #2563eb !important;
+  /* Solid Royal Blue */
+  color: white !important;
+  padding: 60px 100px !important;
+  /* Wide Header Padding */
+  margin-bottom: 2rem;
+  border-bottom: none;
+}
+
+/* Header Text Overrides */
+.theme-modern header h1 {
+  color: white !important;
+  font-weight: 800;
+  font-size: 2.5rem !important;
+}
+
+.theme-modern header p,
+.theme-modern header .text-muted,
+.theme-modern header i,
+.theme-modern header small {
+  .theme-modern header p.lead {
+    font-size: 1.25rem !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.theme-modern header .rounded-circle.bg-light,
+.theme-modern header .rounded-circle.bg-secondary {
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  background-color: white !important;
+  color: #2563eb !important;
+}
+
+/* Body Content Padding - Fix Bootstrap Grid Issues */
+.theme-modern>.row {
+  margin: 0 !important;
+  padding: 0 100px 100px 100px !important;
+  /* Standard 1-inch Margins */
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.theme-modern .col-md-8,
+.theme-modern .col-md-4 {
+  padding-left: 0 !important;
+  padding-right: 30px !important;
+  /* Gutter */
+}
+
+.theme-modern section {
+  margin-bottom: 30px !important;
+}
+
+.theme-modern h4 {
+  color: #2563eb !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-left: 5px solid #2563eb;
+  padding-left: 15px;
+  margin-bottom: 20px;
+  font-size: 1.2rem !important;
+}
+
+.theme-modern .badge {
+  background-color: #2563eb !important;
+  color: white !important;
+}
+
+
+/* Classic Theme (Clean & Professional) */
+.theme-classic {
+  background: #ffffff !important;
+  font-family: 'Georgia', serif !important;
+  border: none;
+  padding: 100px !important;
+  /* Standard 1-inch (~100px) Margins */
+  color: #000 !important;
+  line-height: 1.6;
+}
+
+.theme-classic header {
+  border-bottom: 2px solid #000;
+  padding-bottom: 20px;
+  margin-bottom: 40px;
+}
+
+.theme-classic h1 {
+  font-family: 'Times New Roman', serif;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 2.5rem !important;
+}
+
+.theme-classic h4 {
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 5px;
+  color: #333 !important;
+  font-style: italic;
+  margin-top: 30px;
+  font-size: 1.2rem !important;
+}

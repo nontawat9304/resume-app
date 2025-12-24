@@ -1,0 +1,36 @@
+{
+    "NAV": {
+        "BRAND": "Resume App",
+        "DASHBOARD": "Dashboard",
+        "LOGOUT": "Logout"
+    },
+    "DASHBOARD": {
+        "YOUR_RESUMES": "Your Resumes",
+        "NO_RESUMES": "No resumes found. Create your first one!",
+        "ADDED_CERT": "Added a new certification",
+        "UPDATE_RESUME": "Updated resume",
+        "VIEW_DETAILS": "View Details",
+        "HIDE_DETAILS": "Hide Details"
+    },
+    "EDITOR": {
+        "ADD_TRAINING": "Add Training",
+        "CERT_NAME": "Certification Name",
+        "COURSE_CODE": "Course Code",
+        "ISSUER": "Issuer / Institute",
+        "INSTRUCTOR": "Instructor",
+        "DELIVERY_MODE": "Delivery Mode",
+        "TRAINING_LEVEL": "Level",
+        "SKILL_TYPE": "Skill Type",
+        "START_DATE": "Date",
+        "END_DATE": "End Date",
+        "CERT_IMAGE": "Certificate Image",
+        "UPLOAD_IMAGE": "Upload Image",
+        "SKILLS": "Skills",
+        "SUMMARY": "Professional Summary",
+        "EXPERIENCE": "Work Experience",
+        "TRAINING": "Training & Certifications",
+        "EDUCATION": "Education",
+        "SAVE": "Save",
+        "POST": "Post"
+    }
+}

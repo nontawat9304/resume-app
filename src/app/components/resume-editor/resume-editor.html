@@ -1,0 +1,383 @@
+<div class="container mt-4 mb-5 animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <button (click)="goBack()" class="btn btn-primary rounded-circle btn-sm shadow-sm"
+                style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;"
+                title="Back">
+                <i class="bi bi-arrow-left fs-5"></i>
+            </button>
+            <h2 class="fw-bold mb-0">{{ 'EDITOR.TITLE' | translate }}</h2>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex gap-2">
+            <div class="dropdown">
+                <button class="btn btn-info text-white dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
+                </button>
+                <ul class="dropdown-menu shadow">
+                    <li>
+                        <h6 class="dropdown-header">Select Theme</h6>
+                    </li>
+                    <li><a class="dropdown-item" href="javascript:void(0)" (click)="exportPdf('default')">Default</a>
+                    </li>
+                    <li><a class="dropdown-item" href="javascript:void(0)" (click)="exportPdf('modern')">Modern
+                            (Blue)</a></li>
+                    <li><a class="dropdown-item" href="javascript:void(0)" (click)="exportPdf('classic')">Classic
+                            (Serif)</a></li>
+                </ul>
+            </div>
+            <button class="btn btn-success px-4" (click)="onSubmit()" [disabled]="isSubmitting">
+                <i class="bi bi-save me-1"></i> {{ isSubmitting ? 'Saving...' : ('EDITOR.SAVE' | translate) }}
+            </button>
+        </div>
+    </div>
+
+    <!-- WRAPPER FOR EXPORT (Hidden) -->
+    <!-- Added min-height A4 and flex column -->
+    <div id="resume-editor-export"
+        class="pdf-export-container bg-white text-dark p-0 position-absolute top-0 start-0 d-none"
+        style="width: 210mm; min-height: 297mm; z-index: -1000;">
+        <!-- Vibrant Header with Photo -->
+        <div class="pdf-header p-5 d-flex align-items-center text-white"
+            style="background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%); -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+            <!-- Photo Circle (Using IMG) -->
+            <div class="rounded-circle bg-white p-1 me-4 shadow-sm d-flex justify-content-center align-items-center"
+                style="width: 120px; height: 120px; overflow: hidden; flex-shrink: 0;">
+
+                <img *ngIf="auth.currentUser()?.avatar" [src]="auth.currentUser()?.avatar"
+                    style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+
+                <span *ngIf="!auth.currentUser()?.avatar" class="text-secondary fs-1 fw-bold">
+                    {{ resumeForm.value.personalInfo?.fullName?.charAt(0) || 'U' }}
+                </span>
+            </div>
+            <div>
+                <h1 class="fw-bold text-uppercase mb-2" style="letter-spacing: 2px;">{{
+                    resumeForm.value.personalInfo?.fullName || 'Your Name' }}</h1>
+                <p class="mb-0 opacity-75 fs-5">{{ resumeForm.value.title || 'Professional Title' }}</p>
+                <div class="d-flex gap-3 mt-3 text-white-50 small">
+                    <span><i class="bi bi-envelope me-1"></i> {{ resumeForm.value.personalInfo?.email }}</span>
+                    <span><i class="bi bi-telephone me-1"></i> {{ resumeForm.value.personalInfo?.phone }}</span>
+                    <span><i class="bi bi-geo-alt me-1"></i> {{ resumeForm.value.personalInfo?.location }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-5">
+            <!-- Summary -->
+            <div class="mb-5" *ngIf="resumeForm.value.personalInfo?.summary">
+                <h5 class="fw-bold text-uppercase text-primary border-bottom border-2 border-primary pb-2 mb-3">
+                    Professional Summary</h5>
+                <p class="text-secondary" style="line-height: 1.6;">{{ resumeForm.value.personalInfo?.summary }}</p>
+            </div>
+
+            <div class="row">
+                <!-- Left Col: Experience -->
+                <div class="col-8 pe-4">
+                    <div class="mb-5" *ngIf="resumeForm.value.experience?.length">
+                        <h5 class="fw-bold text-uppercase text-primary border-bottom border-2 border-primary pb-2 mb-4">
+                            Experience</h5>
+                        <div *ngFor="let exp of resumeForm.value.experience"
+                            class="mb-4 position-relative ps-3 border-start border-3 border-light">
+                            <div class="d-flex justify-content-between align-items-baseline mb-1">
+                                <h6 class="fw-bold mb-0 fs-5">{{ exp.title }}</h6>
+                                <small class="text-muted fw-bold">{{ exp.startDate | date:'MMM yyyy' }} - {{
+                                    exp.currentlyWorking ? 'Present' : (exp.endDate | date:'MMM yyyy') }}</small>
+                            </div>
+                            <p class="text-primary mb-2 fw-medium">{{ exp.company }}</p>
+                            <p class="small text-secondary mb-0">{{ exp.description }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Col: Skills & Training -->
+                <div class="col-4">
+                    <div class="mb-5" *ngIf="resumeForm.value.skills">
+                        <h5 class="fw-bold text-uppercase text-primary border-bottom border-2 border-primary pb-2 mb-3">
+                            Skills</h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            <ng-container *ngIf="resumeForm.value.skills.length">
+                                <span class="badge bg-light text-dark border fw-normal p-2">{{ resumeForm.value.skills
+                                    }}</span>
+                            </ng-container>
+                        </div>
+                    </div>
+
+                    <!-- Training Section in PDF -->
+                    <div class="mb-5" *ngIf="resumeForm.value.training?.length">
+                        <h5 class="fw-bold text-uppercase text-primary border-bottom border-2 border-primary pb-2 mb-3">
+                            Certifications</h5>
+                        <div *ngFor="let train of resumeForm.value.training" class="mb-3">
+                            <p class="fw-bold mb-0 small">{{ train.name }}</p>
+                            <small class="text-muted d-block">{{ train.issuer }} &bull; {{ train.date | date:'yyyy'
+                                }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form [formGroup]="resumeForm">
+        <!-- Basic Info -->
+        <div class="glass-card mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+            <div class="card-body p-4">
+                <h5 class="mb-3 fw-bold text-primary">{{ 'EDITOR.DETAILS_TITLE' | translate }}</h5>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">{{ 'EDITOR.JOB_TITLE' | translate }}</label>
+                    <input type="text" class="form-control glass-input" formControlName="title"
+                        placeholder="e.g. Software Engineer"
+                        [class.is-invalid]="resumeForm.get('title')?.invalid && resumeForm.get('title')?.touched">
+                </div>
+            </div>
+        </div>
+
+        <!-- Personal Info -->
+        <div class="glass-card mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;"
+            formGroupName="personalInfo">
+            <div class="card-body p-4">
+                <h5 class="mb-3 fw-bold text-primary">{{ 'EDITOR.PERSONAL_INFO' | translate }}</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">{{ 'EDITOR.FULL_NAME' | translate }}</label>
+                        <input type="text" class="form-control glass-input" formControlName="fullName"
+                            [class.is-invalid]="resumeForm.get('personalInfo.fullName')?.invalid && resumeForm.get('personalInfo.fullName')?.touched">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">{{ 'AUTH.EMAIL' | translate }}</label>
+                        <input type="email" class="form-control glass-input" formControlName="email"
+                            [class.is-invalid]="resumeForm.get('personalInfo.email')?.invalid && resumeForm.get('personalInfo.email')?.touched">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">{{ 'EDITOR.PHONE' | translate }}</label>
+                        <input type="text" class="form-control glass-input" formControlName="phone">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">{{ 'EDITOR.LOCATION' | translate }}</label>
+                        <input type="text" class="form-control glass-input" formControlName="location">
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label class="form-label fw-semibold">{{ 'EDITOR.SUMMARY' | translate }}</label>
+                        <textarea class="form-control glass-input" rows="3" formControlName="summary"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Experience -->
+        <div class="glass-card mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0 fw-bold text-primary">{{ 'EDITOR.EXPERIENCE' | translate }}</h5>
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" (click)="addExperience()">
+                        <i class="bi bi-plus-lg"></i> {{ 'EDITOR.ADD_POSITION' | translate }}
+                    </button>
+                </div>
+
+                <div formArrayName="experience">
+                    <div *ngFor="let exp of experienceControls; let i = index" [formGroupName]="i"
+                        class="border-bottom pb-4 mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="badge bg-secondary">{{ 'EDITOR.POSITION' | translate }} #{{ i + 1 }}</span>
+                            <button type="button" class="btn btn-sm text-danger" (click)="removeExperience(i)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                        <!-- Error msg for group -->
+                        <div *ngIf="exp.invalid && exp.touched" class="text-danger small mb-2">* {{
+                            'EDITOR.FILL_REQUIRED' | translate }}</div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'EDITOR.JOB_TITLE_LABEL' | translate }}</label>
+                                <input type="text" class="form-control glass-input" formControlName="title"
+                                    [class.is-invalid]="exp.get('title')?.invalid && exp.get('title')?.touched">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'EDITOR.COMPANY_LABEL' | translate }}</label>
+                                <input type="text" class="form-control glass-input" formControlName="company"
+                                    [class.is-invalid]="exp.get('company')?.invalid && exp.get('company')?.touched">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">{{ 'EDITOR.DESCRIPTION_LABEL' | translate }}</label>
+                                <div class="input-group">
+                                    <textarea class="form-control glass-input" rows="3"
+                                        formControlName="description"></textarea>
+                                    <button class="btn btn-outline-secondary" type="button"
+                                        (click)="generateDescription(i)">
+                                        <i class="bi bi-stars"></i> {{ 'EDITOR.AI_WRITER' | translate }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Training & Certifications (NEW) -->
+        <div class="glass-card mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0 fw-bold text-primary">{{ 'EDITOR.TRAINING' | translate }}</h5>
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" (click)="addTraining()">
+                        <i class="bi bi-plus-lg"></i> {{ 'EDITOR.ADD_TRAINING' | translate }}
+                    </button>
+                </div>
+
+                <div formArrayName="training">
+                    <div *ngFor="let train of trainingControls; let i = index" [formGroupName]="i"
+                        class="border-bottom pb-4 mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="badge bg-info text-dark">{{ 'EDITOR.CERTIFICATE' | translate }} #{{ i + 1
+                                }}</span>
+                            <button type="button" class="btn btn-sm text-danger" (click)="removeTraining(i)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+
+                        <!-- Row 1: Basic Info -->
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label ms-1 small fw-bold text-secondary">{{ 'EDITOR.COURSE_NAME' |
+                                    translate }}</label>
+                                <input type="text" class="form-control glass-input" formControlName="name"
+                                    placeholder="Course Name"
+                                    [class.is-invalid]="train.get('name')?.invalid && train.get('name')?.touched">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label ms-1 small fw-bold text-secondary">{{ 'EDITOR.COURSE_CODE' |
+                                    translate }}</label>
+                                <input type="text" class="form-control glass-input" formControlName="courseCode"
+                                    placeholder="Code">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label ms-1 small fw-bold text-secondary">{{ 'EDITOR.SKILL_CATEGORY' |
+                                    translate }}</label>
+                                <input type="text" class="form-control glass-input" formControlName="skillCategory"
+                                    placeholder="e.g. Technical">
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Details -->
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label ms-1 small fw-bold text-secondary">{{ 'EDITOR.INSTRUCTOR' |
+                                    translate }}</label>
+                                <input type="text" class="form-control glass-input" formControlName="instructor">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label ms-1 small fw-bold text-secondary">{{ 'EDITOR.DELIVERY_MODE' |
+                                    translate }}</label>
+                                <select class="form-select glass-input" formControlName="deliveryMode">
+                                    <option value="online">Online</option>
+                                    <option value="onsite">Onsite</option>
+                                    <option value="hybrid">Hybrid</option>
+                                    <option value="workshop">Workshop</option>
+                                    <option value="job training">Job Training</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label ms-1 small fw-bold text-secondary">{{ 'EDITOR.TRAINING_LEVEL' |
+                                    translate }}</label>
+                                <select class="form-select glass-input" formControlName="trainingLevel">
+                                    <option value="beginner">Beginner</option>
+                                    <option value="intermediate">Intermediate</option>
+                                    <option value="advanced">Advanced</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label ms-1 small fw-bold text-secondary">{{ 'EDITOR.SKILL_TYPE' |
+                                    translate }}</label>
+                                <select class="form-select glass-input" formControlName="skillType">
+                                    <option value="Upskill">Upskill</option>
+                                    <option value="Reskill">Reskill</option>
+                                    <option value="Cross-skill">Cross-skill</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Admin -->
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label ms-1 small fw-bold text-secondary">{{ 'EDITOR.START_DATE' |
+                                    translate }}</label>
+                                <input type="date" class="form-control glass-input" formControlName="startDate">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label ms-1 small fw-bold text-secondary">{{ 'EDITOR.END_DATE' |
+                                    translate }}</label>
+                                <input type="date" class="form-control glass-input" formControlName="endDate">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label ms-1 small fw-bold text-secondary">{{ 'EDITOR.ISSUER' |
+                                    translate }}</label>
+                                <input type="text" class="form-control glass-input" formControlName="issuer"
+                                    placeholder="Institute">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label ms-1 small fw-bold text-secondary">{{ 'EDITOR.COST' | translate
+                                    }}</label>
+                                <input type="number" class="form-control glass-input" formControlName="trainingCost">
+                            </div>
+                        </div>
+
+                        <!-- Row 4: Long Text -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label ms-1 small fw-bold text-secondary">{{
+                                    'EDITOR.LEARNING_OBJECTIVE' | translate }}</label>
+                                <textarea class="form-control glass-input" rows="2"
+                                    formControlName="learningObjective"></textarea>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label ms-1 small fw-bold text-secondary">{{ 'EDITOR.PREREQUISITES' |
+                                    translate }}</label>
+                                <textarea class="form-control glass-input" rows="2"
+                                    formControlName="prerequisites"></textarea>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label ms-1 small fw-bold text-secondary">{{ 'EDITOR.NOTE' | translate
+                                    }}</label>
+                                <textarea class="form-control glass-input" rows="2" formControlName="note"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Row 5: Image -->
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label class="form-label ms-1 small fw-bold text-secondary">{{ 'EDITOR.CERT_IMAGE' |
+                                    translate }}</label>
+                                <input type="file" class="form-control glass-input" (change)="onFileChange($event, i)"
+                                    accept="image/*">
+                                <div *ngIf="train.get('image')?.value" class="mt-2 position-relative d-inline-block">
+                                    <img [src]="train.get('image')?.value" class="img-thumbnail"
+                                        style="max-height: 100px;">
+                                    <button type="button"
+                                        class="btn btn-sm btn-danger rounded-circle position-absolute top-0 end-0 m-1"
+                                        (click)="removeImage(i)" title="Remove Image">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Skills -->
+        <div class="glass-card mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.5s;">
+            <div class="card-body p-4">
+                <h5 class="mb-3 fw-bold text-primary">{{ 'EDITOR.SKILLS' | translate }}</h5>
+                <div class="mb-3">
+                    <label class="form-label">{{ 'EDITOR.SKILLS' | translate }}</label>
+                    <input type="text" class="form-control glass-input" formControlName="skills"
+                        [placeholder]="'EDITOR.SKILLS_PLACEHOLDER' | translate">
+                </div>
+            </div>
+        </div>
+
+    </form>
+</div>

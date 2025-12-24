@@ -1,0 +1,67 @@
+<div class="row justify-content-center mt-5 align-items-center" style="min-height: 80vh;">
+    <div class="col-md-6 col-lg-5 animate__animated animate__fadeInUp">
+        <div class="glass-card card border-0">
+            <div class="card-body p-5">
+                <h3 class="text-center mb-4 fw-bold">{{ 'AUTH.REGISTER_TITLE' | translate }}</h3>
+
+                <div *ngIf="error" class="alert alert-danger animate__animated animate__shakeX">
+                    {{ error }}
+                </div>
+
+                <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label for="firstName" class="form-label fw-semibold">First Name</label>
+                            <input type="text" class="form-control glass-input" id="firstName"
+                                formControlName="firstName" placeholder="John"
+                                [class.is-invalid]="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched">
+                            <div class="invalid-feedback">
+                                First Name is required.
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label for="lastName" class="form-label fw-semibold">Last Name</label>
+                            <input type="text" class="form-control glass-input" id="lastName" formControlName="lastName"
+                                placeholder="Doe"
+                                [class.is-invalid]="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
+                            <div class="invalid-feedback">
+                                Last Name is required.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="email" class="form-label fw-semibold">{{ 'AUTH.EMAIL' | translate }}</label>
+                        <input type="email" class="form-control glass-input" id="email" formControlName="email"
+                            placeholder="name@example.com"
+                            [class.is-invalid]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+                        <div class="invalid-feedback">
+                            Please enter a valid email.
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password" class="form-label fw-semibold">{{ 'AUTH.PASSWORD' | translate }}</label>
+                        <input type="password" class="form-control glass-input" id="password" formControlName="password"
+                            placeholder="••••••••"
+                            [class.is-invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+                        <div class="invalid-feedback">
+                            Password must be at least 4 characters.
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-premium btn-lg" [disabled]="registerForm.invalid">
+                            {{ 'AUTH.SUBMIT_REGISTER' | translate }}
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-4 text-center">
+                    <small class="text-dark">{{ 'AUTH.HAS_ACCOUNT' | translate }} <a routerLink="/login"
+                            class="fw-bold text-primary">{{ 'AUTH.LOGIN_TITLE' | translate }}</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,29 @@
+{
+    "NAV": {
+        "DASHBOARD": "แดชบอร์ด",
+        "LOGOUT": "ออกจากระบบ"
+    },
+    "DASHBOARD": {
+        "YOUR_RESUMES": "เรซูเม่ของคุณ",
+        "NO_RESUMES": "ยังไม่มีเรซูเม่ เริ่มสร้างเลย!"
+    },
+    "EDITOR": {
+        "ADD_TRAINING": "เพิ่มประวัติการฝึกอบรม",
+        "CERT_NAME": "ชื่อหลักสูตร / ใบรับรอง",
+        "COURSE_CODE": "รหัสหลักสูตร",
+        "ISSUER": "สถาบัน / ผู้จัด",
+        "INSTRUCTOR": "ผู้สอน",
+        "DELIVERY_MODE": "รูปแบบการเรียน",
+        "TRAINING_LEVEL": "ระดับ",
+        "SKILL_TYPE": "ประเภททักษะ",
+        "START_DATE": "วันที่เริ่ม",
+        "END_DATE": "วันที่สิ้นสุด",
+        "CERT_IMAGE": "รูปภาพใบรับรอง",
+        "UPLOAD_IMAGE": "อัปโหลดรูปภาพ",
+        "SKILLS": "ทักษะ",
+        "SUMMARY": "สรุปข้อมูลโดยย่อ",
+        "EXPERIENCE": "ประสบการณ์ทำงาน",
+        "TRAINING": "การฝึกอบรม & ใบรับรอง",
+        "EDUCATION": "การศึกษา"
+    }
+}

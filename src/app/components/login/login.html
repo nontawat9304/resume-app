@@ -1,0 +1,46 @@
+<div class="row justify-content-center mt-5 align-items-center" style="min-height: 80vh;">
+    <div class="col-md-6 col-lg-5 animate__animated animate__fadeInUp">
+        <div class="glass-card card border-0">
+            <div class="card-body p-5">
+                <h3 class="text-center mb-4 fw-bold">{{ 'AUTH.LOGIN_TITLE' | translate }}</h3>
+
+                <div *ngIf="error" class="alert alert-danger animate__animated animate__shakeX">
+                    {{ error }}
+                </div>
+
+                <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+                    <div class="mb-4">
+                        <label for="email" class="form-label fw-semibold">{{ 'AUTH.EMAIL' | translate }}</label>
+                        <input type="email" class="form-control glass-input" id="email" formControlName="email"
+                            placeholder="name@example.com"
+                            [class.is-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+                        <div class="invalid-feedback">
+                            Please enter a valid email.
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password" class="form-label fw-semibold">{{ 'AUTH.PASSWORD' | translate }}</label>
+                        <input type="password" class="form-control glass-input" id="password" formControlName="password"
+                            placeholder="••••••••"
+                            [class.is-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+                        <div class="invalid-feedback">
+                            Password is required.
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-premium btn-lg" [disabled]="loginForm.invalid">
+                            {{ 'AUTH.SUBMIT_LOGIN' | translate }}
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-4 text-center">
+                    <small class="text-dark">{{ 'AUTH.NO_ACCOUNT' | translate }} <a routerLink="/register"
+                            class="fw-bold text-primary">{{ 'AUTH.REGISTER_TITLE' | translate }}</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

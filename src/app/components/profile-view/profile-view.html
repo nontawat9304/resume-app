@@ -1,0 +1,190 @@
+<div class="container my-5" *ngIf="resume">
+    <div class="text-end mb-4 no-print d-flex justify-content-end gap-2" *ngIf="isOwner">
+        <div class="dropdown">
+            <button class="btn btn-dark dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                <i class="bi bi-file-earmark-pdf-fill me-2"></i>Export
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="exportDropdown">
+                <li>
+                    <h6 class="dropdown-header">Choose Theme</h6>
+                </li>
+                <li><a class="dropdown-item" href="javascript:void(0)" (click)="exportPdf('classic')">
+                        <i class="bi bi-file-text me-2"></i>Classic
+                    </a></li>
+                <li><a class="dropdown-item" href="javascript:void(0)" (click)="exportPdf('modern')">
+                        <i class="bi bi-person-badge me-2"></i>Modern
+                    </a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item text-primary fw-bold" href="javascript:void(0)"
+                        (click)="exportPdf('custom')">
+                        <i class="bi bi-magic me-2"></i>Customize...
+                    </a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="profile-pdf-content" class="resume-paper shadow-lg p-5 bg-white text-dark" style="font-size: 1.1rem;">
+        <!-- Header -->
+        <header class="border-bottom pb-4 mb-4 d-flex align-items-center">
+            <div *ngIf="userAvatar"
+                class="me-4 rounded-circle bg-light d-flex justify-content-center align-items-center shadow-sm"
+                style="width: 100px; height: 100px; min-width: 100px; background-size: cover; background-position: center;"
+                [style.background-image]="'url(' + userAvatar + ')'">
+            </div>
+            <div>
+                <h1 class="display-4 fw-bold text-uppercase text-primary">{{ resume.personalInfo.fullName }}</h1>
+                <p class="lead mb-0 text-dark">{{ resume.title }}</p>
+                <div class="text-muted mt-2">
+                    <span><i class="bi bi-envelope-fill me-2"></i>{{ resume.personalInfo.email }}</span>
+                    <span class="mx-2">|</span>
+                    <span *ngIf="resume.personalInfo.phone"><i class="bi bi-telephone-fill me-2"></i>{{
+                        resume.personalInfo.phone }}</span>
+                    <span class="mx-2" *ngIf="resume.personalInfo.phone">|</span>
+                    <span *ngIf="resume.personalInfo.location"><i class="bi bi-geo-alt-fill me-2"></i>{{
+                        resume.personalInfo.location }}</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-md-8">
+                <!-- Summary -->
+                <section class="mb-5 animate__animated animate__fadeInLeft" *ngIf="resume.personalInfo.summary">
+                    <h4 class="text-uppercase fw-bold text-primary mb-3">{{ 'EDITOR.SUMMARY' | translate }}</h4>
+                    <p>{{ resume.personalInfo.summary }}</p>
+                </section>
+
+                <!-- Experience -->
+                <section class="mb-5 animate__animated animate__fadeInLeft" style="animation-delay: 0.1s;">
+                    <h4 class="text-uppercase fw-bold text-primary mb-3">{{ 'EDITOR.EXPERIENCE' | translate }}</h4>
+                    <div *ngFor="let exp of resume.experience" class="mb-4">
+                        <div class="d-flex justify-content-between align-items-baseline">
+                            <h5 class="fw-bold mb-0">{{ exp.title }}</h5>
+                            <small class="text-muted">
+                                {{ exp.startDate | locDate }} - {{ exp.currentlyWorking ? 'Present' : (exp.endDate
+                                | locDate) }}
+                            </small>
+                        </div>
+                        <h6 class="text-primary mb-2 fw-semibold">{{ exp.company }}</h6>
+                        <p>{{ exp.description }}</p>
+                    </div>
+                </section>
+
+                <!-- Training & Certifications (Moved to Main Column) -->
+                <section class="mb-5 animate__animated animate__fadeInLeft" style="animation-delay: 0.2s;"
+                    *ngIf="resume.training && resume.training.length > 0" data-html2canvas-ignore="true">
+                    <h4 class="text-uppercase fw-bold text-primary mb-3">{{ 'EDITOR.TRAINING' | translate }}</h4>
+                    <div class="row">
+                        <div *ngFor="let train of resume.training" class="col-12 mb-4">
+                            <div class="card border-0 shadow-sm h-100 bg-light">
+                                <div class="row g-0">
+                                    <div class="col-md-3" *ngIf="train.image">
+                                        <img [src]="train.image" class="img-fluid rounded-start h-100"
+                                            style="object-fit: cover; min-height: 150px;" alt="...">
+                                    </div>
+                                    <div class="col-md-{{ train.image ? '9' : '12' }}">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <h5 class="fw-bold mb-1">{{ train.name }}</h5>
+                                                    <p class="text-primary mb-1">{{ train.issuer }}</p>
+                                                    <span class="badge bg-white text-dark border me-2"
+                                                        *ngIf="train.courseCode">{{ train.courseCode }}</span>
+                                                    <span
+                                                        class="badge bg-info bg-opacity-10 text-info border border-info"
+                                                        *ngIf="train.skillType">{{ train.skillType }}</span>
+                                                </div>
+                                                <div class="text-end">
+                                                    <small class="text-muted d-block">{{ train.startDate | locDate
+                                                        }} - {{
+                                                        train.endDate | locDate }}</small>
+                                                    <small class="text-success fw-bold" *ngIf="train.trainingCost">{{
+                                                        train.trainingCost | currency }}</small>
+                                                </div>
+                                            </div>
+
+                                            <!-- Collapsible Details -->
+                                            <div *ngIf="train.showDetails"
+                                                class="mt-3 animate__animated animate__fadeIn">
+                                                <div class="row small text-secondary mb-2">
+                                                    <div class="col-md-6" *ngIf="train.instructor"><i
+                                                            class="bi bi-person me-1"></i>
+                                                        <strong>{{ 'EDITOR.INSTRUCTOR' | translate }}:</strong> {{
+                                                        train.instructor }}
+                                                    </div>
+                                                    <div class="col-md-6" *ngIf="train.deliveryMode"><i
+                                                            class="bi bi-display me-1"></i>
+                                                        <strong>{{ 'EDITOR.DELIVERY_MODE' | translate }}:</strong> {{
+                                                        train.deliveryMode }}
+                                                    </div>
+                                                    <div class="col-md-6" *ngIf="train.trainingLevel"><i
+                                                            class="bi bi-bar-chart me-1"></i>
+                                                        <strong>{{ 'EDITOR.TRAINING_LEVEL' | translate }}:</strong> {{
+                                                        train.trainingLevel }}
+                                                    </div>
+                                                </div>
+
+                                                <div class="small bg-white p-3 rounded border">
+                                                    <div *ngIf="train.learningObjective" class="mb-2">
+                                                        <strong>Objective:</strong> {{ train.learningObjective }}
+                                                    </div>
+                                                    <div *ngIf="train.prerequisites" class="mb-2">
+                                                        <strong>Prerequisites:</strong> {{ train.prerequisites }}
+                                                    </div>
+                                                    <div *ngIf="train.note" class="text-muted fst-italic">
+                                                        Note: {{ train.note }}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <button class="btn btn-sm btn-outline-primary rounded-pill mt-3 px-3"
+                                                (click)="train.showDetails = !train.showDetails">
+                                                {{ (train.showDetails ? 'DASHBOARD.HIDE_DETAILS' :
+                                                'DASHBOARD.VIEW_DETAILS') | translate }}
+                                                <i class="bi" [class.bi-chevron-down]="!train.showDetails"
+                                                    [class.bi-chevron-up]="train.showDetails"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-md-4 border-start ps-4">
+                <!-- Education -->
+                <section class="mb-5 animate__animated animate__fadeInRight" style="animation-delay: 0.1s;">
+                    <h4 class="text-uppercase fw-bold text-primary mb-3">{{ 'EDITOR.EDUCATION' | translate }}</h4>
+                    <div *ngFor="let edu of resume.education" class="mb-3">
+                        <h6 class="fw-bold mb-0">{{ edu.degree }}</h6>
+                        <p class="mb-0 fw-semibold">{{ edu.school }}</p>
+                        <small class="text-muted">{{ edu.graduationDate | locDate }}</small>
+                    </div>
+                </section>
+
+                <!-- Skills -->
+                <section class="mb-5" *ngIf="resume.skills && resume.skills.length > 0">
+                    <h4 class="text-uppercase fw-bold text-primary mb-3">{{ 'EDITOR.SKILLS' | translate }}</h4>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span *ngFor="let skill of resume.skills" class="badge bg-light text-dark border p-2 fs-6">{{
+                            skill }}</span>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container text-center py-5" *ngIf="!resume">
+    <h3>Resume not found.</h3>
+</div>
+
+<app-theme-designer *ngIf="showDesigner" (apply)="onThemeApplied($event)"
+    (close)="showDesigner = false"></app-theme-designer>

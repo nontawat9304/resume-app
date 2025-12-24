@@ -1,0 +1,36 @@
+{
+    "NAV": {
+        "BRAND": "เรซูเม่แอพ",
+        "DASHBOARD": "แดชบอร์ด",
+        "LOGOUT": "ออกจากระบบ"
+    },
+    "DASHBOARD": {
+        "YOUR_RESUMES": "เรซูเม่ของคุณ",
+        "NO_RESUMES": "ยังไม่มีเรซูเม่ เริ่มสร้างเลย!",
+        "ADDED_CERT": "เพิ่มใบรับรอง / การฝึกอบรม",
+        "UPDATE_RESUME": "อัปเดตเรซูเม่",
+        "VIEW_DETAILS": "ดูข้อมูลเพิ่มเติม",
+        "HIDE_DETAILS": "ซ่อนข้อมูลเพิ่มเติม"
+    },
+    "EDITOR": {
+        "ADD_TRAINING": "เพิ่มประวัติการฝึกอบรม",
+        "CERT_NAME": "ชื่อหลักสูตร / ใบรับรอง",
+        "COURSE_CODE": "รหัสหลักสูตร",
+        "ISSUER": "สถาบัน / ผู้จัด",
+        "INSTRUCTOR": "ผู้สอน",
+        "DELIVERY_MODE": "รูปแบบการเรียน",
+        "TRAINING_LEVEL": "ระดับ",
+        "SKILL_TYPE": "ประเภททักษะ",
+        "START_DATE": "วันที่",
+        "END_DATE": "ถึงวันที่",
+        "CERT_IMAGE": "รูปภาพใบรับรอง",
+        "UPLOAD_IMAGE": "อัปโหลดรูปภาพ",
+        "SKILLS": "ทักษะ",
+        "SUMMARY": "สรุปข้อมูลโดยย่อ",
+        "EXPERIENCE": "ประสบการณ์ทำงาน",
+        "TRAINING": "การฝึกอบรม & ใบรับรอง",
+        "EDUCATION": "การศึกษา",
+        "SAVE": "บันทึก",
+        "POST": "โพสต์"
+    }
+}

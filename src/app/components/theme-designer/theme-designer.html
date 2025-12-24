@@ -1,0 +1,89 @@
+<div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-bottom-0 p-4 pb-0 bg-white">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-palette-fill me-2 text-primary"></i>Designer
+                </h5>
+                <button type="button" class="btn-close" (click)="closeModal()"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small mb-4">Create your own unique resume style.</p>
+
+                <!-- Primary Color -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-uppercase text-secondary">Primary Color</label>
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        <div *ngFor="let color of colors" class="color-swatch rounded-circle shadow-sm"
+                            [style.background-color]="color" [class.active]="settings.primaryColor === color"
+                            (click)="settings.primaryColor = color">
+                            <i class="bi bi-check text-white" *ngIf="settings.primaryColor === color"></i>
+                        </div>
+                    </div>
+                    <input type="color" class="form-control form-control-color w-100"
+                        [(ngModel)]="settings.primaryColor" title="Choose your color">
+                </div>
+
+                <!-- Header Style -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-uppercase text-secondary">Header Style</label>
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <div class="style-option p-2 border rounded text-center"
+                                [class.active]="settings.headerStyle === 'banner'"
+                                (click)="settings.headerStyle = 'banner'">
+                                <div class="mini-preview mb-1" [style.background]="settings.primaryColor"></div>
+                                <small>Banner</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="style-option p-2 border rounded text-center"
+                                [class.active]="settings.headerStyle === 'left-bar'"
+                                (click)="settings.headerStyle = 'left-bar'">
+                                <div class="mini-preview mb-1 border-start border-4"
+                                    [style.border-color]="settings.primaryColor"></div>
+                                <small>Left Bar</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="style-option p-2 border rounded text-center"
+                                [class.active]="settings.headerStyle === 'clean'"
+                                (click)="settings.headerStyle = 'clean'">
+                                <div class="mini-preview mb-1 border-bottom"
+                                    [style.border-color]="settings.primaryColor"></div>
+                                <small>Clean</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Font & Background -->
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label fw-bold small text-uppercase text-secondary">Font</label>
+                        <select class="form-select" [(ngModel)]="settings.fontFamily">
+                            <option value="sans">Modern (Sans)</option>
+                            <option value="serif">Classic (Serif)</option>
+                            <option value="mono">Tech (Mono)</option>
+                        </select>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label fw-bold small text-uppercase text-secondary">Background</label>
+                        <select class="form-select" [(ngModel)]="settings.backgroundColor">
+                            <option value="white">Pure White</option>
+                            <option value="warm">Warm Paper</option>
+                            <option value="gradient">Soft Gradient</option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer border-top-0 p-4 pt-0 bg-white">
+                <button type="button" class="btn btn-light rounded-pill px-4" (click)="closeModal()">Cancel</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4 shadow-sm" (click)="applyTheme()">
+                    <i class="bi bi-magic me-2"></i>Create PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

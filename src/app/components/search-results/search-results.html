@@ -1,0 +1,41 @@
+<div class="container mt-5 mb-5 animate__animated animate__fadeIn">
+    <div class="d-flex align-items-center mb-4">
+        <button (click)="goBack()" class="btn btn-primary rounded-circle btn-sm me-3 shadow-sm"
+            style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+            <i class="bi bi-arrow-left fs-5"></i>
+        </button>
+        <h3 class="fw-bold mb-0">
+            <i class="bi bi-search me-2 text-primary"></i>
+            Search Results for "{{ query }}"
+        </h3>
+    </div>
+
+    <div *ngIf="results.length === 0" class="text-center py-5 glass-card">
+        <i class="bi bi-emoji-frown display-1 text-muted opacity-25"></i>
+        <p class="mt-3 text-muted">No users or resumes found matching your search.</p>
+        <a routerLink="/" class="btn btn-outline-primary mt-2">Go Home</a>
+    </div>
+
+    <div class="row">
+        <div *ngFor="let resume of results" class="col-md-6 col-lg-4 mb-4">
+            <div
+                class="glass-card h-100 p-4 d-flex flex-column align-items-center text-center animate__animated animate__fadeInUp">
+                <div class="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center mb-3 shadow-sm"
+                    style="width: 80px; height: 80px; font-size: 2rem; background-size: cover; background-position: center;"
+                    [style.background-image]="resume.avatar ? 'url(' + resume.avatar + ')' : ''">
+                    <span *ngIf="!resume.avatar">{{ resume.personalInfo.fullName.charAt(0).toUpperCase() }}</span>
+                </div>
+                <h5 class="fw-bold mb-1">{{ resume.personalInfo.fullName }}</h5>
+                <p class="text-primary small mb-3">{{ resume.title }}</p>
+                <p class="text-muted small mb-4 text-truncate" style="max-width: 100%;">
+                    {{ resume.personalInfo.summary || 'No summary provided' }}
+                </p>
+                <div class="mt-auto">
+                    <a [routerLink]="['/p', resume.id]" class="btn btn-primary rounded-pill px-4 btn-sm">
+                        View Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

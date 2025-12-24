@@ -1,0 +1,67 @@
+/* Avatar Hover Overlay */
+.profile-avatar-container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.profile-avatar-container:hover {
+    transform: scale(1.02);
+}
+
+.avatar-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.profile-avatar-container:hover .avatar-overlay {
+    opacity: 1;
+}
+
+/* Themes for PDF Export */
+
+/* Modern Theme (Blue Accent) */
+.theme-modern .card-body {
+    background: #f0f8ff !important;
+    /* AliceBlue */
+    border: 2px solid #007bff;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.theme-modern h6 {
+    color: #0056b3 !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.theme-modern .badge {
+    background-color: #007bff !important;
+    color: white !important;
+}
+
+/* Classic Theme (Serif, Clean) */
+.theme-classic .card-body {
+    background: #ffffff !important;
+    font-family: 'Times New Roman', Times, serif;
+    border: 1px solid #000;
+}
+
+.theme-classic h6 {
+    color: #000 !important;
+    border-bottom: 1px solid #000;
+    padding-bottom: 5px;
+}
+
+.theme-classic .text-muted {
+    color: #333 !important;
+}
+
+.theme-classic .badge {
+    background-color: transparent !important;
+    color: #000 !important;
+    border: 1px solid #000 !important;
+}
