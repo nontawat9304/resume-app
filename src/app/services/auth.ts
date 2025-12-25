@@ -43,9 +43,21 @@ export class AuthService {
 
   login(email: string, password: string): Observable<any> {
     return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
-      switchMap(credential => this.getUserDocument(credential.user.uid)),
-      map(user => {
+      // Pass both credential and user data down the chain to ensure we have the UID
+      switchMap(credential =>
+        this.getUserDocument(credential.user.uid).pipe(
+          map(user => ({ user, uid: credential.user.uid }))
+        )
+      ),
+      map(({ user, uid }) => {
         if (user) {
+          // Self-Healing: User is the hardcoded admin but role isn't set
+          if (user.email === 'admin@test.com' && user.role !== 'admin') {
+            user.role = 'admin'; // Update local state for immediate UI check
+            // Use the captured UID to ensure path is correct (users/uid)
+            const userRef = doc(this.firestore, `users/${uid}`);
+            updateDoc(userRef, { role: 'admin' }).catch(e => console.error("Admin auto-update failed", e));
+          }
           if (!user.isActive) {
             signOut(this.auth);
             return { success: false, message: 'AUTH.USER_DISABLED' };
@@ -54,18 +66,17 @@ export class AuthService {
           else this.router.navigate(['/dashboard']);
           return { success: true, user };
         } else {
-          // Self-Healing: Auth exists but Firestore doc missing (Legacy/Error case)
-          // We recover by creating the doc now using the current Auth info.
+          // Recovery: Auth exists but Firestore doc missing
           const currentUser = this.auth.currentUser;
-          if (currentUser) {
+          if (currentUser || uid) {
             const recoveryUser: User = {
-              id: currentUser.uid,
-              name: currentUser.displayName || 'User',
-              email: currentUser.email || '',
-              role: 'user',
+              id: uid,
+              name: currentUser?.displayName || 'User',
+              email: currentUser?.email || email || '',
+              role: (currentUser?.email || email) === 'admin@test.com' ? 'admin' : 'user',
               isActive: true
             };
-            this.createUserDocument(recoveryUser); // Fire and forget recovery
+            this.createUserDocument(recoveryUser);
             this.router.navigate(['/dashboard']);
             return { success: true, user: recoveryUser };
           }
@@ -132,7 +143,7 @@ export class AuthService {
   private getUserDocument(uid: string): Observable<User | null> {
     const userRef = doc(this.firestore, `users/${uid}`);
     return from(getDoc(userRef)).pipe(
-      map(snapshot => snapshot.exists() ? snapshot.data() as User : null)
+      map(snapshot => snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } as User : null)
     );
   }
 
