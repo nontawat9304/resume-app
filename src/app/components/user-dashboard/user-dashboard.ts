@@ -1,9 +1,9 @@
-import { Component, OnInit, HostListener, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, HostListener, ChangeDetectorRef, effect, Injector } from '@angular/core';
 import { AuthService } from '../../services/auth';
 import { ResumeService } from '../../services/resume';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { PdfService, ThemeSettings } from '../../services/pdf.service';
 import { ThemeDesignerComponent } from '../theme-designer/theme-designer';
@@ -38,9 +38,20 @@ export class UserDashboardComponent implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private pdfService: PdfService,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private injector: Injector
   ) {
+    // Reactive: Automatically load resumes when User is ready
+    effect(() => {
+      const user = this.auth.currentUser();
+      if (user) {
+        this.userName = user.name;
+        this.loadResumes(user.id);
+      }
+    });
+
     this.trainingForm = this.fb.group({
+      // ... form init
       name: ['', Validators.required],
       courseCode: [''],
       skillCategory: [''],
@@ -61,28 +72,30 @@ export class UserDashboardComponent implements OnInit {
   }
 
   ngOnInit() {
-    const user = this.auth.currentUser();
-    if (user) {
-      this.userName = user.name;
-      this.loadResumes(user.id);
-    }
+    // Logic moved to effect()
   }
 
   loadResumes(userId: string) {
-    this.resumeService.getResumesByUser(userId).subscribe(res => {
-      // Sort resumes by updated date descending
-      this.resumes = res.sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    this.resumeService.getResumesByUser(userId).subscribe({
+      next: (res) => {
+        // Sort resumes by updated date descending
+        this.resumes = res.sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 
-      // Migration: Ensure all training items have IDs for editing
-      this.resumes.forEach(r => {
-        if (r.training) {
-          r.training.forEach((t: any) => {
-            if (!t.id) t.id = crypto.randomUUID();
-          });
-        }
-      });
+        // Migration: Ensure all training items have IDs for editing
+        this.resumes.forEach(r => {
+          if (r.training) {
+            r.training.forEach((t: any) => {
+              if (!t.id) t.id = crypto.randomUUID();
+            });
+          }
+        });
 
-      this.generateFeed();
+        this.generateFeed();
+        this.cd.detectChanges(); // Force Check
+      },
+      error: (err) => {
+        console.error('Error loading resumes:', err);
+      }
     });
   }
 
@@ -151,30 +164,65 @@ export class UserDashboardComponent implements OnInit {
   onFileChange(event: any) {
     const file = event.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.tempImage = e.target.result;
+      if (file.size > 5 * 1024 * 1024) { // 5MB Limit for Raw Selection
+        alert('Image is too large! Please choose an image under 5MB.');
+        return;
+      }
+      this.compressImage(file, 800, 800).then(compressed => {
+        this.tempImage = compressed;
         this.trainingForm.patchValue({ image: this.tempImage });
         this.cd.detectChanges();
-      };
-      reader.readAsDataURL(file);
+      });
     }
   }
 
   onProfilePicChange(event: any) {
     const file = event.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
+      this.compressImage(file, 300, 300).then(compressed => {
         const currentUser = this.auth.currentUser();
         if (currentUser) {
-          const updatedUser = { ...currentUser, avatar: e.target.result };
+          const updatedUser = { ...currentUser, avatar: compressed };
           this.auth.updateUser(updatedUser);
           this.cd.detectChanges();
         }
-      };
-      reader.readAsDataURL(file);
+      });
     }
+  }
+
+  // Helper: Client-side Image Compression
+  compressImage(file: File, maxWidth: number, maxHeight: number): Promise<string> {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (e: any) => {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height *= maxWidth / width;
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width *= maxHeight / height;
+              height = maxHeight;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          // Return compressed JPEG
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        };
+      };
+    });
   }
 
   editTraining(post: any) {
@@ -280,13 +328,34 @@ export class UserDashboardComponent implements OnInit {
 
       // Save
       this.resumeService.saveResume(targetResume).subscribe(() => {
-        alert(this.editingTrainingId ? 'Training updated!' : 'Training added!');
+        // 1. Close Modal Immediately
         this.closeModal();
-        // Force reload from DB to ensure sync
-        const user = this.auth.currentUser();
-        if (user) this.loadResumes(user.id);
+
+        // 2. Use setTimeout to allow UI to update (remove modal) before Alert blocks the thread
+        setTimeout(() => {
+          alert(this.editingTrainingId ?
+            this.translate('ALERT.UPDATE_TRAINING') :
+            this.translate('ALERT.ADD_TRAINING')
+          );
+
+          // 3. Refresh Data
+          const user = this.auth.currentUser();
+          if (user) this.loadResumes(user.id);
+        }, 100);
       });
+    } else {
+      alert(this.translate('ALERT.FORM_INVALID'));
+      this.trainingForm.markAllAsTouched();
     }
+  }
+
+  translate(key: string): string {
+    // Try to get instant translation if loaded, otherwise return key or fallback
+    // Since we are using a synchronous loader/Effect, instant should work mainly.
+    // However, for safety in TS alerts, we can fallback to the hardcoded text we had if needed, 
+    // but better to rely on the Service.
+    const service = this.injector.get(TranslateService);
+    return service.instant(key);
   }
 
   logout() {
@@ -294,12 +363,12 @@ export class UserDashboardComponent implements OnInit {
   }
 
   deleteResume(id: string) {
-    if (confirm('Are you sure you want to delete this resume? This cannot be undone.')) {
+    if (confirm('คุณแน่ใจว่าต้องการลบเรซูเม้นี้? (ไม่สามารถกู้คืนได้นะครับ) 🗑️')) {
       this.resumeService.deleteResume(id).subscribe(() => {
         // Remove from local list
         this.resumes = this.resumes.filter(r => r.id !== id);
         this.generateFeed();
-        alert('Resume deleted successfully.');
+        alert('ลบเรซูเม่เรียบร้อยแล้วครับ');
       });
     }
   }

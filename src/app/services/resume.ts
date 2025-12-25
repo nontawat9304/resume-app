@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
-import { of } from 'rxjs';
-import { MockSqlService } from '../mock-db/mock-sql.service';
+import { Observable, from, of } from 'rxjs';
+import { getFirestore, collection, doc, setDoc, deleteDoc, query, where, getDocs, onSnapshot, Firestore } from 'firebase/firestore';
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { environment } from '../../environments/environment';
+import { map } from 'rxjs/operators';
 
 export interface Experience {
   id?: string;
@@ -16,11 +19,14 @@ export interface Education {
   id?: string;
   degree: string;
   school: string;
-  graduationDate: string;
+  fieldOfStudy?: string;
+  graduationDate: string; // or endDate
+  startDate?: string;
+  description?: string;
 }
 
 export interface Training {
-  name: string; // Course Name (legacy/main)
+  name: string;
   courseCode?: string;
   skillCategory?: string;
   instructor?: string;
@@ -35,9 +41,9 @@ export interface Training {
   note?: string;
 
   issuer: string;
-  date: string; // Keep for legacy, maybe map to endDate
+  date: string;
   image?: string;
-  showDetails?: boolean; // UI State
+  showDetails?: boolean;
 }
 
 export interface Resume {
@@ -56,66 +62,121 @@ export interface Resume {
   training: Training[];
   skills: string[];
   updatedAt: Date;
+  isPublic?: boolean;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class ResumeService {
-  constructor(private db: MockSqlService) { }
+  private firestore: Firestore;
+  private app: FirebaseApp;
 
-  getResumesByUser(userId: string) {
-    // SQL: SELECT * FROM resumes WHERE userId = ?
-    const resumes = this.db.query('resumes', (r) => r.userId === userId);
-    return of(resumes);
+  constructor() {
+    // STANDALONE INIT: Bypass AngularFire DI to avoid SDK version mismatch
+    this.app = getApps().length === 0 ? initializeApp(environment.firebase) : getApp();
+    this.firestore = getFirestore(this.app);
+    console.log('ResumeService: Firestore initialized standalone', this.firestore);
   }
 
-  getResumeById(id: string) {
-    // SQL: SELECT * FROM resumes WHERE id = ?
-    const resumes = this.db.query('resumes', (r) => r.id === id);
-    return of(resumes[0] || null);
+  getResumesByUser(userId: string): Observable<Resume[]> {
+    return new Observable((observer) => {
+      let unsubscribe = () => { };
+      try {
+        const resumesRef = collection(this.firestore, 'resumes');
+        const q = query(resumesRef, where('userId', '==', userId));
+
+        unsubscribe = onSnapshot(q, (snapshot) => {
+          const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+          observer.next(this.mapDates(data));
+        }, (error) => {
+          console.error('Firestore Error (getResumesByUser):', error);
+          observer.error(error);
+        });
+      } catch (err) {
+        console.error('Critical Setup Error:', err);
+        observer.error(err);
+      }
+      return () => unsubscribe();
+    });
+  }
+
+  getResumeById(id: string): Observable<Resume | null> {
+    return new Observable((observer) => {
+      let unsubscribe = () => { };
+      try {
+        const resumeRef = doc(this.firestore, `resumes/${id}`);
+        unsubscribe = onSnapshot(resumeRef, (snapshot) => {
+          if (snapshot.exists()) {
+            observer.next(this.mapDateSingle({ id: snapshot.id, ...snapshot.data() }) as Resume);
+          } else {
+            observer.next(null);
+          }
+        }, (error) => {
+          console.error('Firestore Error (getResumeById):', error);
+          observer.error(error);
+        });
+      } catch (err) {
+        observer.error(err);
+      }
+      return () => unsubscribe();
+    });
   }
 
   /**
-   * Search with SQL-like LIKE Logic
-   * Checks Name, Email, Job Title, or Skills
+   * Search with Client-side filtering for broader search,
+   * or use a specific Firestore query for exact matches.
+   * Note: Full-text search on Firestore requires Algolia/Typesense.
+   * tailored here for basic "Public" resume search.
    */
-  searchResumes(term: string) {
+  searchResumes(term: string): Observable<Resume[]> {
     const lowerTerm = term.toLowerCase().trim();
     if (!lowerTerm) return of([]);
 
-    // SQL: SELECT * FROM resumes WHERE lower(fullName) LIKE %term% OR ...
-    const results = this.db.query('resumes', (r) => {
-      const nameMatch = r.personalInfo?.fullName?.toLowerCase().includes(lowerTerm);
-      const emailMatch = r.personalInfo?.email?.toLowerCase().includes(lowerTerm);
-      const titleMatch = r.title?.toLowerCase().includes(lowerTerm);
+    return from((async () => {
+      // Fetches ALL public resumes (caution: scaling issue in production)
+      const resumesRef = collection(this.firestore, 'resumes');
+      const q = query(resumesRef, where('isPublic', '==', true));
 
-      // Also check if any skill matches
-      const skillMatch = r.skills?.some((s: string) => s.toLowerCase().includes(lowerTerm));
+      const snapshot = await getDocs(q);
+      const allPublic = snapshot.docs.map(d => this.mapDateSingle({ id: d.id, ...d.data() })) as Resume[];
 
-      return nameMatch || emailMatch || titleMatch || skillMatch;
-    });
-
-    return of(results);
+      return allPublic.filter(r => {
+        const nameMatch = r.personalInfo?.fullName?.toLowerCase().includes(lowerTerm);
+        const titleMatch = r.title?.toLowerCase().includes(lowerTerm);
+        const skillMatch = r.skills?.some((s: string) => s.toLowerCase().includes(lowerTerm));
+        return nameMatch || titleMatch || skillMatch;
+      });
+    })());
   }
 
-  saveResume(resume: Resume) {
-    console.log('[ResumeService] Saving resume:', resume);
-    const existing = this.db.query('resumes', (r) => r.id === resume.id);
+  saveResume(resume: Resume): Observable<any> {
+    const resumeRef = doc(this.firestore, `resumes/${resume.id}`);
+    const dataToSave = {
+      ...resume,
+      updatedAt: new Date().toISOString() // Store as ISO String for consistency or Firestore Timestamp
+    };
+    return from(setDoc(resumeRef, dataToSave)).pipe(
+      map(() => ({ success: true, id: resume.id }))
+    );
+  }
 
-    if (existing.length > 0) {
-      // UPDATE
-      console.log('[ResumeService] Updating existing resume');
-      this.db.update('resumes', resume, (r) => r.id === resume.id);
-    } else {
-      // INSERT
-      console.log('[ResumeService] Inserting new resume');
-      this.db.insert('resumes', resume);
+  deleteResume(id: string): Observable<any> {
+    const resumeRef = doc(this.firestore, `resumes/${id}`);
+    return from(deleteDoc(resumeRef)).pipe(
+      map(() => ({ success: true }))
+    );
+  }
+
+  // Helper to handle Firestore Timestamps if they return as objects
+  private mapDates(data: any[]): any[] {
+    return data.map(item => this.mapDateSingle(item));
+  }
+
+  private mapDateSingle(item: any): any {
+    if (item.updatedAt && typeof item.updatedAt.toDate === 'function') {
+      item.updatedAt = item.updatedAt.toDate();
     }
-    return of({ success: true, id: resume.id });
-  }
-  deleteResume(id: string) {
-    this.db.delete('resumes', (r) => r.id === id);
-    return of({ success: true });
+    return item;
   }
 }

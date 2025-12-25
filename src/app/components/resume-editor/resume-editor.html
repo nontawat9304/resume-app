@@ -28,7 +28,8 @@
                 </ul>
             </div>
             <button class="btn btn-success px-4" (click)="onSubmit()" [disabled]="isSubmitting">
-                <i class="bi bi-save me-1"></i> {{ isSubmitting ? 'Saving...' : ('EDITOR.SAVE' | translate) }}
+                <i class="bi bi-save me-1"></i> {{ isSubmitting ? ('EDITOR.SAVING' | translate) : ('EDITOR.SAVE' |
+                translate) }}
             </button>
         </div>
     </div>
@@ -215,6 +216,60 @@
             </div>
         </div>
 
+        <!-- Education (NEW) -->
+        <div class="glass-card mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.35s;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0 fw-bold text-primary">{{ 'EDITOR.EDUCATION' | translate }}</h5>
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" (click)="addEducation()">
+                        <i class="bi bi-plus-lg"></i> {{ 'EDITOR.ADD_EDUCATION' | translate }}
+                    </button>
+                </div>
+
+                <div formArrayName="education">
+                    <div *ngFor="let edu of educationControls; let i = index" [formGroupName]="i"
+                        class="border-bottom pb-4 mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="badge bg-secondary">{{ 'EDITOR.EDUCATION' | translate }} #{{ i + 1 }}</span>
+                            <button type="button" class="btn btn-sm text-danger" (click)="removeEducation(i)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'EDITOR.SCHOOL' | translate }}</label>
+                                <input type="text" class="form-control glass-input" formControlName="school"
+                                    [class.is-invalid]="edu.get('school')?.invalid && edu.get('school')?.touched">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'EDITOR.DEGREE' | translate }}</label>
+                                <input type="text" class="form-control glass-input" formControlName="degree"
+                                    [class.is-invalid]="edu.get('degree')?.invalid && edu.get('degree')?.touched">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'EDITOR.FIELD' | translate }}</label>
+                                <input type="text" class="form-control glass-input" formControlName="fieldOfStudy">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">{{ 'EDITOR.START_DATE' | translate }}</label>
+                                <input type="date" class="form-control glass-input" formControlName="startDate">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">{{ 'EDITOR.END_DATE' | translate }}</label>
+                                <input type="date" class="form-control glass-input" formControlName="graduationDate"
+                                    [class.is-invalid]="edu.get('graduationDate')?.invalid && edu.get('graduationDate')?.touched">
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">{{ 'EDITOR.DESCRIPTION_LABEL' | translate }}</label>
+                                <textarea class="form-control glass-input" rows="2"
+                                    formControlName="description"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Training & Certifications (NEW) -->
         <div class="glass-card mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
             <div class="card-body p-4">
@@ -377,6 +432,15 @@
                         [placeholder]="'EDITOR.SKILLS_PLACEHOLDER' | translate">
                 </div>
             </div>
+        </div>
+
+        <!-- Bottom Save Button -->
+        <div class="d-flex justify-content-end mb-5 animate__animated animate__fadeInUp" style="animation-delay: 0.6s;">
+            <button class="btn btn-success px-5 py-2 shadow-lg rounded-pill" (click)="onSubmit()"
+                [disabled]="isSubmitting">
+                <i class="bi bi-save me-2"></i> {{ isSubmitting ? ('EDITOR.SAVING' | translate) : ('EDITOR.SAVE' |
+                translate) }}
+            </button>
         </div>
 
     </form>

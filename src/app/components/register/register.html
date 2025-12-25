@@ -11,21 +11,23 @@
                 <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
                     <div class="row">
                         <div class="col-md-6 mb-4">
-                            <label for="firstName" class="form-label fw-semibold">First Name</label>
+                            <label for="firstName" class="form-label fw-semibold">{{ 'AUTH.FIRST_NAME' | translate
+                                }}</label>
                             <input type="text" class="form-control glass-input" id="firstName"
                                 formControlName="firstName" placeholder="John"
                                 [class.is-invalid]="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched">
                             <div class="invalid-feedback">
-                                First Name is required.
+                                {{ 'AUTH.REQUIRED_FIELD' | translate }}
                             </div>
                         </div>
                         <div class="col-md-6 mb-4">
-                            <label for="lastName" class="form-label fw-semibold">Last Name</label>
+                            <label for="lastName" class="form-label fw-semibold">{{ 'AUTH.LAST_NAME' | translate
+                                }}</label>
                             <input type="text" class="form-control glass-input" id="lastName" formControlName="lastName"
                                 placeholder="Doe"
                                 [class.is-invalid]="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
                             <div class="invalid-feedback">
-                                Last Name is required.
+                                {{ 'AUTH.REQUIRED_FIELD' | translate }}
                             </div>
                         </div>
                     </div>
@@ -36,7 +38,7 @@
                             placeholder="name@example.com"
                             [class.is-invalid]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
                         <div class="invalid-feedback">
-                            Please enter a valid email.
+                            {{ 'AUTH.INVALID_EMAIL' | translate }}
                         </div>
                     </div>
 
@@ -46,12 +48,12 @@
                             placeholder="••••••••"
                             [class.is-invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
                         <div class="invalid-feedback">
-                            Password must be at least 4 characters.
+                            {{ 'AUTH.PASSWORD_MIN_LENGTH' | translate }}
                         </div>
                     </div>
 
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-premium btn-lg" [disabled]="registerForm.invalid">
+                        <button type="submit" class="btn btn-premium btn-lg">
                             {{ 'AUTH.SUBMIT_REGISTER' | translate }}
                         </button>
                     </div>

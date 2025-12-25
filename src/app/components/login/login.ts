@@ -15,6 +15,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 export class LoginComponent {
   loginForm: FormGroup;
   error = '';
+  isLoading = false;
 
   constructor(
     private fb: FormBuilder,
@@ -30,21 +31,24 @@ export class LoginComponent {
 
   onSubmit() {
     if (this.loginForm.valid) {
+      this.isLoading = true; // Start loading
       const { email, password } = this.loginForm.value;
       this.auth.login(email, password).subscribe({
         next: (res: any) => {
+          this.isLoading = false; // Stop loading
           if (res.success) {
             this.router.navigate(['/dashboard']);
           } else {
-            // Handle logic error (e.g. invalid creds, disabled account)
-            this.error = res.message || 'Login failed';
+            this.error = this.translate.instant(res.message || 'AUTH.INVALID_CREDENTIALS');
           }
         },
         error: (errKey) => {
-          // Handle HTTP/Observable errors (e.g. email exists during register)
+          this.isLoading = false; // Stop loading
           this.error = this.translate.instant(errKey) || errKey;
         }
       });
+    } else {
+      this.loginForm.markAllAsTouched();
     }
   }
 }

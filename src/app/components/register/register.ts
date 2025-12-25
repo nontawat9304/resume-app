@@ -26,7 +26,7 @@ export class RegisterComponent {
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(4)]]
+      password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
@@ -37,12 +37,15 @@ export class RegisterComponent {
 
       this.auth.register({ name: fullName, email, password }).subscribe({
         next: (res: any) => {
+          alert(this.translate.instant('AUTH.REGISTER_SUCCESS'));
           this.router.navigate(['/login']);
         },
         error: (errKey) => {
           this.error = this.translate.instant(errKey) || errKey;
         }
       });
+    } else {
+      this.registerForm.markAllAsTouched();
     }
   }
 }

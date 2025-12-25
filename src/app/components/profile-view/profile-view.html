@@ -28,7 +28,7 @@
 
     <div id="profile-pdf-content" class="resume-paper shadow-lg p-5 bg-white text-dark" style="font-size: 1.1rem;">
         <!-- Header -->
-        <header class="border-bottom pb-4 mb-4 d-flex align-items-center">
+        <header class="border-bottom pb-3 mb-3 d-flex align-items-center">
             <div *ngIf="userAvatar"
                 class="me-4 rounded-circle bg-light d-flex justify-content-center align-items-center shadow-sm"
                 style="width: 100px; height: 100px; min-width: 100px; background-size: cover; background-position: center;"
@@ -53,31 +53,33 @@
             <!-- Left Column -->
             <div class="col-md-8">
                 <!-- Summary -->
-                <section class="mb-5 animate__animated animate__fadeInLeft" *ngIf="resume.personalInfo.summary">
-                    <h4 class="text-uppercase fw-bold text-primary mb-3">{{ 'EDITOR.SUMMARY' | translate }}</h4>
+                <section class="mb-4 animate__animated animate__fadeInLeft" *ngIf="resume.personalInfo.summary">
+                    <h4 class="text-uppercase fw-bold text-dark mb-3">{{ 'EDITOR.SUMMARY' | translate }}</h4>
                     <p>{{ resume.personalInfo.summary }}</p>
                 </section>
 
                 <!-- Experience -->
-                <section class="mb-5 animate__animated animate__fadeInLeft" style="animation-delay: 0.1s;">
-                    <h4 class="text-uppercase fw-bold text-primary mb-3">{{ 'EDITOR.EXPERIENCE' | translate }}</h4>
-                    <div *ngFor="let exp of resume.experience" class="mb-4">
-                        <div class="d-flex justify-content-between align-items-baseline">
-                            <h5 class="fw-bold mb-0">{{ exp.title }}</h5>
-                            <small class="text-muted">
-                                {{ exp.startDate | locDate }} - {{ exp.currentlyWorking ? 'Present' : (exp.endDate
-                                | locDate) }}
+                <section class="mb-4 animate__animated animate__fadeInLeft" style="animation-delay: 0.1s;">
+                    <h4 class="text-uppercase fw-bold text-dark mb-3">{{ 'EDITOR.EXPERIENCE' | translate }}</h4>
+                    <div *ngFor="let exp of resume.experience" class="mb-3 pb-2 border-bottom">
+                        <div class="d-flex justify-content-between align-items-baseline mb-1">
+                            <h5 class="fw-normal mb-0 text-dark">
+                                {{ exp.title }} <span class="text-muted fw-normal">{{ 'EDITOR.AT' | translate }} {{
+                                    exp.company }}</span>
+                            </h5>
+                            <small class="text-secondary text-nowrap ms-3">
+                                {{ exp.startDate | locDate }} - {{ exp.currentlyWorking ? ('EDITOR.PRESENT' | translate)
+                                : (exp.endDate | locDate) }}
                             </small>
                         </div>
-                        <h6 class="text-primary mb-2 fw-semibold">{{ exp.company }}</h6>
-                        <p>{{ exp.description }}</p>
+                        <p class="text-dark mb-0 small" style="line-height: 1.5;">{{ exp.description }}</p>
                     </div>
                 </section>
 
                 <!-- Training & Certifications (Moved to Main Column) -->
-                <section class="mb-5 animate__animated animate__fadeInLeft" style="animation-delay: 0.2s;"
+                <section class="mb-4 animate__animated animate__fadeInLeft" style="animation-delay: 0.2s;"
                     *ngIf="resume.training && resume.training.length > 0" data-html2canvas-ignore="true">
-                    <h4 class="text-uppercase fw-bold text-primary mb-3">{{ 'EDITOR.TRAINING' | translate }}</h4>
+                    <h4 class="text-uppercase fw-bold text-dark mb-3">{{ 'EDITOR.TRAINING' | translate }}</h4>
                     <div class="row">
                         <div *ngFor="let train of resume.training" class="col-12 mb-4">
                             <div class="card border-0 shadow-sm h-100 bg-light">
@@ -88,23 +90,24 @@
                                     </div>
                                     <div class="col-md-{{ train.image ? '9' : '12' }}">
                                         <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div>
-                                                    <h5 class="fw-bold mb-1">{{ train.name }}</h5>
-                                                    <p class="text-primary mb-1">{{ train.issuer }}</p>
-                                                    <span class="badge bg-white text-dark border me-2"
-                                                        *ngIf="train.courseCode">{{ train.courseCode }}</span>
-                                                    <span
-                                                        class="badge bg-info bg-opacity-10 text-info border border-info"
-                                                        *ngIf="train.skillType">{{ train.skillType }}</span>
-                                                </div>
-                                                <div class="text-end">
-                                                    <small class="text-muted d-block">{{ train.startDate | locDate
-                                                        }} - {{
-                                                        train.endDate | locDate }}</small>
-                                                    <small class="text-success fw-bold" *ngIf="train.trainingCost">{{
-                                                        train.trainingCost | currency }}</small>
-                                                </div>
+                                            <div class="d-flex justify-content-between align-items-baseline mb-1">
+                                                <h5 class="fw-semibold mb-0 text-dark">
+                                                    {{ train.name }}
+                                                    <span class="text-muted fw-normal">{{ 'EDITOR.AT' | translate
+                                                        }} {{ train.issuer }}</span>
+                                                </h5>
+                                                <small class="text-secondary text-nowrap ms-3">
+                                                    {{ train.startDate | locDate }} - {{ train.endDate | locDate }}
+                                                </small>
+                                            </div>
+
+                                            <div class="mb-2">
+                                                <span class="badge bg-light text-dark border me-2 fw-normal"
+                                                    *ngIf="train.courseCode">{{ train.courseCode }}</span>
+                                                <span class="badge bg-light text-dark border fw-normal"
+                                                    *ngIf="train.skillType">{{ train.skillType }}</span>
+                                                <small class="text-success fw-bold ms-2" *ngIf="train.trainingCost">{{
+                                                    train.trainingCost | currency }}</small>
                                             </div>
 
                                             <!-- Collapsible Details -->
@@ -113,27 +116,29 @@
                                                 <div class="row small text-secondary mb-2">
                                                     <div class="col-md-6" *ngIf="train.instructor"><i
                                                             class="bi bi-person me-1"></i>
-                                                        <strong>{{ 'EDITOR.INSTRUCTOR' | translate }}:</strong> {{
+                                                        {{ 'EDITOR.INSTRUCTOR' | translate }}: {{
                                                         train.instructor }}
                                                     </div>
                                                     <div class="col-md-6" *ngIf="train.deliveryMode"><i
                                                             class="bi bi-display me-1"></i>
-                                                        <strong>{{ 'EDITOR.DELIVERY_MODE' | translate }}:</strong> {{
+                                                        {{ 'EDITOR.DELIVERY_MODE' | translate }}: {{
                                                         train.deliveryMode }}
                                                     </div>
                                                     <div class="col-md-6" *ngIf="train.trainingLevel"><i
                                                             class="bi bi-bar-chart me-1"></i>
-                                                        <strong>{{ 'EDITOR.TRAINING_LEVEL' | translate }}:</strong> {{
+                                                        {{ 'EDITOR.TRAINING_LEVEL' | translate }}: {{
                                                         train.trainingLevel }}
                                                     </div>
                                                 </div>
 
                                                 <div class="small bg-white p-3 rounded border">
                                                     <div *ngIf="train.learningObjective" class="mb-2">
-                                                        <strong>Objective:</strong> {{ train.learningObjective }}
+                                                        {{ 'EDITOR.OBJECTIVE' | translate }}: {{ train.learningObjective
+                                                        }}
                                                     </div>
                                                     <div *ngIf="train.prerequisites" class="mb-2">
-                                                        <strong>Prerequisites:</strong> {{ train.prerequisites }}
+                                                        {{ 'EDITOR.PREREQUISITES' | translate }}: {{ train.prerequisites
+                                                        }}
                                                     </div>
                                                     <div *ngIf="train.note" class="text-muted fst-italic">
                                                         Note: {{ train.note }}
@@ -160,22 +165,32 @@
             <!-- Right Column -->
             <div class="col-md-4 border-start ps-4">
                 <!-- Education -->
-                <section class="mb-5 animate__animated animate__fadeInRight" style="animation-delay: 0.1s;">
-                    <h4 class="text-uppercase fw-bold text-primary mb-3">{{ 'EDITOR.EDUCATION' | translate }}</h4>
-                    <div *ngFor="let edu of resume.education" class="mb-3">
-                        <h6 class="fw-bold mb-0">{{ edu.degree }}</h6>
-                        <p class="mb-0 fw-semibold">{{ edu.school }}</p>
-                        <small class="text-muted">{{ edu.graduationDate | locDate }}</small>
+                <section class="mb-4 animate__animated animate__fadeInRight" style="animation-delay: 0.1s;">
+                    <h4 class="text-uppercase fw-bold text-dark mb-3">{{ 'EDITOR.EDUCATION' | translate }}</h4>
+                    <div *ngFor="let edu of resume.education" class="mb-3 pb-2 border-bottom">
+                        <div class="mb-1">
+                            <span class="fw-normal text-dark">{{ edu.degree }}</span>
+                            <span *ngIf="edu.fieldOfStudy" class="fw-normal text-dark">, {{ edu.fieldOfStudy
+                                }}</span>
+                            <span class="text-muted fw-normal"> {{ 'EDITOR.AT' | translate }} {{ edu.school }}</span>
+                            <small class="text-secondary ms-2">
+                                ({{ edu.startDate ? (edu.startDate | locDate) + ' - ' : '' }}{{ edu.graduationDate |
+                                locDate }})
+                            </small>
+                        </div>
+                        <p *ngIf="edu.description" class="text-dark mb-0 small" style="line-height: 1.5;">{{
+                            edu.description }}</p>
                     </div>
                 </section>
 
                 <!-- Skills -->
-                <section class="mb-5" *ngIf="resume.skills && resume.skills.length > 0">
-                    <h4 class="text-uppercase fw-bold text-primary mb-3">{{ 'EDITOR.SKILLS' | translate }}</h4>
-                    <div class="d-flex flex-wrap gap-2">
-                        <span *ngFor="let skill of resume.skills" class="badge bg-light text-dark border p-2 fs-6">{{
-                            skill }}</span>
-                    </div>
+                <section class="mb-4" *ngIf="resume.skills && resume.skills.length > 0">
+                    <h4 class="text-uppercase fw-bold text-dark mb-3">{{ 'EDITOR.SKILLS' | translate }}</h4>
+                    <ul class="list-unstyled">
+                        <li *ngFor="let skill of resume.skills" class="mb-1 text-dark border-bottom pb-1 small">
+                            {{ skill }}
+                        </li>
+                    </ul>
                 </section>
             </div>
         </div>

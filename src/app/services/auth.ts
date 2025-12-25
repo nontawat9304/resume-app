@@ -1,143 +1,176 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { of, Observable } from 'rxjs';
+import { Observable, from, of, switchMap, map, tap, catchError, throwError } from 'rxjs';
+import { Auth, user, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User as FirebaseUser } from '@angular/fire/auth';
+import { Firestore, doc, setDoc, getDoc, updateDoc, collection, getDocs, deleteDoc } from '@angular/fire/firestore';
 
 export interface User {
   id: string;
   name: string;
   email: string;
   role: 'admin' | 'user';
-  isActive: boolean; // New Flag
+  isActive: boolean;
   avatar?: string;
-  password?: string;
-}
-
-// Simple Mock DB since the service file was missing
-class MockDB {
-  private storage: any = { users: [] };
-  constructor() {
-    if (typeof localStorage !== 'undefined') {
-      const s = localStorage.getItem('mock_db');
-      if (s) this.storage = JSON.parse(s);
-      else {
-        // Seed Admin
-        this.storage.users.push({
-          id: 'admin-1',
-          name: 'Admin User',
-          email: 'admin@test.com',
-          password: 'admin',
-          role: 'admin',
-          isActive: true,
-          avatar: ''
-        });
-        this.save();
-      }
-    }
-  }
-  save() {
-    if (typeof localStorage !== 'undefined') localStorage.setItem('mock_db', JSON.stringify(this.storage));
-  }
-  query(table: string, predicate: (item: any) => boolean) { return (this.storage[table] || []).filter(predicate); }
-  getAll(table: string) { return this.storage[table] || []; }
-  input(table: string, item: any) {
-    if (!this.storage[table]) this.storage[table] = [];
-    this.storage[table].push(item);
-    this.save();
-  }
-  update(table: string, item: any, predicate: (i: any) => boolean) {
-    const idx = this.storage[table].findIndex(predicate);
-    if (idx !== -1) {
-      this.storage[table][idx] = { ...this.storage[table][idx], ...item };
-      this.save();
-    }
-  }
-  delete(table: string, predicate: (i: any) => boolean) {
-    this.storage[table] = this.storage[table].filter((i: any) => !predicate(i));
-    this.save();
-  }
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  currentUser = signal<User | null>(null);
-  private db = new MockDB(); // Internal Mock DB replacement
+  private auth: Auth = inject(Auth);
+  private firestore: Firestore = inject(Firestore);
+  private router: Router = inject(Router);
 
-  constructor(private router: Router) {
-    if (typeof localStorage !== 'undefined') {
-      const stored = localStorage.getItem('session_user');
-      if (stored) {
-        this.currentUser.set(JSON.parse(stored));
-      }
-    }
+  // Observable of the current Firebase user
+  user$ = user(this.auth);
+
+  // Signal for the current app user (with role/profile data)
+  currentUser = signal<User | null>(null);
+
+  constructor() {
+    // Sync Firebase Auth state with our User interface
+    this.user$.pipe(
+      switchMap(firebaseUser => {
+        if (!firebaseUser) return of(null);
+        return this.getUserDocument(firebaseUser.uid);
+      })
+    ).subscribe(user => {
+      this.currentUser.set(user);
+    });
   }
 
-  login(email: string, password: string): Observable<any> {
-    const users = this.db.query('users', (u) => u.email === email && u.password === password);
-    if (users.length > 0) {
-      const user = users[0];
-      if (user.isActive === false) return of({ success: false, message: 'Account is disabled. Contact admin.' });
+  // --- Auth Actions ---
 
-      const { password, ...safeUser } = user;
-      this.setSession(safeUser);
-      return of({ success: true, user: safeUser });
-    }
-    return of({ success: false, message: 'Invalid credentials' });
+  login(email: string, password: string): Observable<any> {
+    return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
+      switchMap(credential => this.getUserDocument(credential.user.uid)),
+      map(user => {
+        if (user) {
+          if (!user.isActive) {
+            signOut(this.auth);
+            return { success: false, message: 'AUTH.USER_DISABLED' };
+          }
+          if (user.role === 'admin') this.router.navigate(['/admin']);
+          else this.router.navigate(['/dashboard']);
+          return { success: true, user };
+        } else {
+          // Self-Healing: Auth exists but Firestore doc missing (Legacy/Error case)
+          // We recover by creating the doc now using the current Auth info.
+          const currentUser = this.auth.currentUser;
+          if (currentUser) {
+            const recoveryUser: User = {
+              id: currentUser.uid,
+              name: currentUser.displayName || 'User',
+              email: currentUser.email || '',
+              role: 'user',
+              isActive: true
+            };
+            this.createUserDocument(recoveryUser); // Fire and forget recovery
+            this.router.navigate(['/dashboard']);
+            return { success: true, user: recoveryUser };
+          }
+          return { success: false, message: 'AUTH.USER_NOT_FOUND' };
+        }
+      }),
+      catchError(err => throwError(() => this.mapFirebaseError(err)))
+    );
   }
 
   register(userData: any): Observable<any> {
-    const existing = this.db.query('users', (u) => u.email === userData.email);
-    if (existing.length > 0) return new Observable(obs => { obs.error('AUTH.EMAIL_EXISTS'); obs.complete(); });
-
-    const newUser = {
-      id: crypto.randomUUID(),
-      ...userData,
-      role: 'user',
-      isActive: true, // Default active
-      avatar: ''
-    };
-
-    this.db.input('users', newUser);
-    return of({ success: true, user: newUser });
-  }
-
-  // Admin Methods
-  getAllUsers(): Observable<User[]> {
-    return of(this.db.getAll('users'));
-  }
-
-  updateUserStatus(userId: string, isActive: boolean) {
-    this.db.update('users', { isActive }, u => u.id === userId);
-  }
-
-  updateUserRole(userId: string, role: 'admin' | 'user') {
-    this.db.update('users', { role }, u => u.id === userId);
-  }
-
-  deleteUser(userId: string) {
-    this.db.delete('users', u => u.id === userId);
-  }
-
-  // Profile Update
-  updateUser(user: User) {
-    this.db.update('users', user, u => u.id === user.id);
-    this.setSession(user);
+    return from(createUserWithEmailAndPassword(this.auth, userData.email, userData.password)).pipe(
+      switchMap(async (credential) => {
+        const newUser: User = {
+          id: credential.user.uid,
+          name: userData.name,
+          email: userData.email,
+          role: userData.email === 'admin@test.com' ? 'admin' : 'user', // Auto-admin for legacy admin email
+          isActive: true,
+          avatar: ''
+        };
+        await this.createUserDocument(newUser);
+        return { success: true, user: newUser };
+      }),
+      catchError(err => throwError(() => this.mapFirebaseError(err)))
+    );
   }
 
   logout() {
-    this.currentUser.set(null);
-    localStorage.removeItem('session_user');
-    this.router.navigate(['/login']);
+    signOut(this.auth).then(() => {
+      this.router.navigate(['/login']);
+    });
   }
 
-  private setSession(user: User) {
-    this.currentUser.set(user);
-    localStorage.setItem('session_user', JSON.stringify(user));
-    if (user.role === 'admin') this.router.navigate(['/admin']);
-    else this.router.navigate(['/dashboard']);
+  // --- Helpers ---
+
+  private mapFirebaseError(err: any): string {
+    const code = err.code || '';
+    switch (code) {
+      case 'auth/email-already-in-use': return 'AUTH.EMAIL_EXISTS';
+      case 'auth/invalid-credential': return 'AUTH.INVALID_CREDENTIALS';
+      case 'auth/weak-password': return 'AUTH.WEAK_PASSWORD';
+      case 'auth/user-disabled': return 'AUTH.USER_DISABLED';
+      case 'auth/operation-not-allowed': return 'AUTH.OPERATION_NOT_ALLOWED'; // Config error
+      case 'auth/user-not-found': return 'AUTH.USER_NOT_FOUND';
+      case 'auth/wrong-password': return 'AUTH.WRONG_PASSWORD';
+      case 'auth/too-many-requests': return 'AUTH.TOO_MANY_REQUESTS';
+      case 'auth/network-request-failed': return 'AUTH.NETWORK_ERROR';
+      default:
+        if (err.message && (err.message.includes('offline') || err.message.includes('400'))) {
+          return 'AUTH.DATABASE_ERROR';
+        }
+        return code || err.message; // Return raw code if not found
+    }
   }
 
+  // --- Firestore Helpers ---
+
+  private async createUserDocument(user: User) {
+    const userRef = doc(this.firestore, `users/${user.id}`);
+    await setDoc(userRef, user);
+  }
+
+  private getUserDocument(uid: string): Observable<User | null> {
+    const userRef = doc(this.firestore, `users/${uid}`);
+    return from(getDoc(userRef)).pipe(
+      map(snapshot => snapshot.exists() ? snapshot.data() as User : null)
+    );
+  }
+
+  // --- Admin / Public Helpers ---
+
+  getAllUsers(): Observable<User[]> {
+    // CAUTION: This fetches ALL users. Safe for small apps, dangerous for large ones.
+    const usersRef = collection(this.firestore, 'users');
+    return from(getDocs(usersRef)).pipe(
+      map(snapshot => snapshot.docs.map((d: any) => ({ id: d.id, ...d.data() } as User)))
+    );
+  }
+
+  updateUserStatus(userId: string, isActive: boolean) {
+    const userRef = doc(this.firestore, `users/${userId}`);
+    updateDoc(userRef, { isActive });
+  }
+
+  deleteUser(userId: string) {
+    const userRef = doc(this.firestore, `users/${userId}`);
+    // Note: This only deletes the User document, not their Auth account. 
+    // Deleting Auth account requires Admin SDK (Cloud Functions) or client-side deleteUser(user) if logged in as that user.
+    // For this simple app, we just remove the data record.
+    deleteDoc(userRef);
+  }
+
+  // --- Account Management ---
+
+  updateUser(user: User) {
+    if (!this.currentUser()) return;
+    const userRef = doc(this.firestore, `users/${user.id}`);
+    updateDoc(userRef, { ...user }).then(() => {
+      this.currentUser.set(user); // Optimistic update
+    });
+  }
+
+  // Admin capabilities would be moved to a separate AdminService or secured via Firestore Rules
+  // For now, keeping properties for compatibility
   get isLoggedIn() { return !!this.currentUser(); }
   get isAdmin() { return this.currentUser()?.role === 'admin'; }
 }

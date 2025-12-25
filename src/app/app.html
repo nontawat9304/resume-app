@@ -75,6 +75,27 @@
 </nav>
 
 <div class="container" style="padding-top: 80px;">
+  <!-- Migration Alert -->
+  <!-- Migration Alert -->
+  <div *ngIf="hasLocalData" class="alert alert-warning d-flex align-items-center justify-content-between shadow-sm"
+    role="alert">
+    <div class="d-flex align-items-center">
+      <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+      <div>
+        <strong>พบข้อมูลเก่าในเครื่อง!</strong> (Old Data Detected)<br>
+        <small>คุณมีข้อมูลที่เคยทำไว้ กดปุ่มเพื่อย้ายขึ้น Cloud หรือกดปิดเพื่อไม่สนใจ</small>
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-dark btn-sm fw-bold" (click)="migrateData()">
+        <i class="bi bi-cloud-upload me-2"></i>ย้ายข้อมูล
+      </button>
+      <button class="btn btn-outline-secondary btn-sm" (click)="dismissMigration()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+  </div>
+
   <router-outlet></router-outlet>
 </div>
 

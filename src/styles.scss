@@ -1,6 +1,8 @@
-@import 'bootstrap/scss/bootstrap';
+@use 'bootstrap/scss/bootstrap';
 @import 'bootstrap-icons/font/bootstrap-icons.css';
 @import 'animate.css/animate.min.css';
+// Note: 'import' is still used for pure CSS files often, or they can be included in angular.json.
+// But for SCSS partials like bootstrap, @use is preferred.
 
 /* Global Styles */
 html,
@@ -28,7 +30,7 @@ body {
 }
 
 .glass-card:hover {
-  transform: translateY(-5px);
+  /* transform: translateY(-5px); Removed as per user request to stop moving */
   /* Modern hover lift effect */
   box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.25);
 }
@@ -264,11 +266,11 @@ a:hover {
 /* Modern Theme (Header Banner) */
 .theme-modern {
   background: #ffffff !important;
-  padding: 0 !important;
-  /* Remove container padding for full-width header */
-  border: 1px solid #e0e0e0;
-  overflow: hidden;
-  /* Clip header */
+  /* Add slight padding to container to prevent absolute edge clipping during export */
+  padding: 0 0 50px 0 !important;
+  border: none;
+  overflow: visible !important;
+  /* Allow content to flow */
   color: #333 !important;
   font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
 }
@@ -277,10 +279,12 @@ a:hover {
   background: #2563eb !important;
   /* Solid Royal Blue */
   color: white !important;
-  padding: 60px 100px !important;
-  /* Wide Header Padding */
+  /* Wide Header Padding - Ensure text doesn't touch edges */
+  padding: 60px 80px !important;
   margin-bottom: 2rem;
   border-bottom: none;
+  /* Ensure header spans full width even if container has padding (if any) */
+  width: 100% !important;
 }
 
 /* Header Text Overrides */
@@ -293,13 +297,13 @@ a:hover {
 .theme-modern header p,
 .theme-modern header .text-muted,
 .theme-modern header i,
-.theme-modern header small {
-  .theme-modern header p.lead {
-    font-size: 1.25rem !important;
-    color: rgba(255, 255, 255, 0.9) !important;
-  }
-
+.theme-modern header small,
+.theme-modern header p.lead {
   color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.theme-modern header p.lead {
+  font-size: 1.25rem !important;
 }
 
 .theme-modern header .rounded-circle.bg-light,
@@ -309,20 +313,19 @@ a:hover {
   color: #2563eb !important;
 }
 
-/* Body Content Padding - Fix Bootstrap Grid Issues */
-.theme-modern>.row {
+/* Body Content Padding */
+.theme-modern .row {
   margin: 0 !important;
-  padding: 0 100px 100px 100px !important;
-  /* Standard 1-inch Margins */
+  /* Critical: Add left/right padding to the content area, not the container, so header stays full width */
+  padding: 0 60px !important;
   width: 100% !important;
   box-sizing: border-box !important;
 }
 
 .theme-modern .col-md-8,
 .theme-modern .col-md-4 {
-  padding-left: 0 !important;
-  padding-right: 30px !important;
-  /* Gutter */
+  padding-left: 15px !important;
+  padding-right: 15px !important;
 }
 
 .theme-modern section {
@@ -351,8 +354,8 @@ a:hover {
   background: #ffffff !important;
   font-family: 'Georgia', serif !important;
   border: none;
-  padding: 100px !important;
-  /* Standard 1-inch (~100px) Margins */
+  /* Standard margin wrapper - Safe for print */
+  padding: 60px 80px !important;
   color: #000 !important;
   line-height: 1.6;
 }

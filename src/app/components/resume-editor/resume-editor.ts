@@ -100,6 +100,16 @@ export class ResumeEditorComponent implements OnInit {
           description: [item.description]
         });
         array.push(group);
+      } else if (controlName === 'education') {
+        const group = this.fb.group({
+          school: [item.school, Validators.required],
+          degree: [item.degree, Validators.required],
+          fieldOfStudy: [item.fieldOfStudy || ''],
+          startDate: [item.startDate || ''],
+          graduationDate: [item.graduationDate || item.endDate, Validators.required],
+          description: [item.description || '']
+        });
+        array.push(group);
       } else if (controlName === 'training') {
         const group = this.fb.group({
           name: [item.name, Validators.required],
@@ -126,6 +136,10 @@ export class ResumeEditorComponent implements OnInit {
 
   get experienceControls() {
     return (this.resumeForm.get('experience') as FormArray).controls as FormGroup[];
+  }
+
+  get educationControls() {
+    return (this.resumeForm.get('education') as FormArray).controls as FormGroup[];
   }
 
   get trainingControls() {
@@ -170,6 +184,22 @@ export class ResumeEditorComponent implements OnInit {
     (this.resumeForm.get('experience') as FormArray).removeAt(index);
   }
 
+  addEducation() {
+    const edu = this.fb.group({
+      school: ['', Validators.required],
+      degree: ['', Validators.required],
+      fieldOfStudy: [''],
+      startDate: [''],
+      graduationDate: ['', Validators.required], // endDate
+      description: ['']
+    });
+    (this.resumeForm.get('education') as FormArray).push(edu);
+  }
+
+  removeEducation(index: number) {
+    (this.resumeForm.get('education') as FormArray).removeAt(index);
+  }
+
   removeTraining(index: number) {
     (this.resumeForm.get('training') as FormArray).removeAt(index);
   }
@@ -177,15 +207,50 @@ export class ResumeEditorComponent implements OnInit {
   onFileChange(event: any, index: number) {
     const file = event.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        const base64 = e.target.result;
+      if (file.size > 5 * 1024 * 1024) { // 5MB Limit
+        alert('รูปภาพมีขนาดใหญ่เกินไป! กรุณาเลือกรูปขนาดไม่เกิน 5MB ครับ');
+        return;
+      }
+      this.compressImage(file, 800, 800).then(compressed => {
         const group = (this.resumeForm.get('training') as FormArray).at(index);
-        group.patchValue({ image: base64 });
+        group.patchValue({ image: compressed });
         this.cd.detectChanges();
-      };
-      reader.readAsDataURL(file);
+      });
     }
+  }
+
+  // Helper: Client-side Image Compression (Duplicated from Dashboard for stability)
+  compressImage(file: File, maxWidth: number, maxHeight: number): Promise<string> {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (e: any) => {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height *= maxWidth / width;
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width *= maxHeight / height;
+              height = maxHeight;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        };
+      };
+    });
   }
 
   removeImage(index: number) {
@@ -197,17 +262,20 @@ export class ResumeEditorComponent implements OnInit {
     const expGroup = (this.resumeForm.get('experience') as FormArray).at(index);
     const title = expGroup.get('title')?.value;
     if (title) {
-      expGroup.patchValue({ description: `Draft generated for ${title}: Responsible for leading development... (AI Implementation pending)` });
+      expGroup.patchValue({ description: `(ตัวอย่าง AI) รับผิดชอบงานด้าน ${title} โดยมีการวางแผนและดำเนินการ...` });
     } else {
-      alert('Please enter a Job Title first.');
+      alert('กรุณาระบุ "ชื่อตำแหน่งงาน" ก่อนให้ AI ช่วยเขียนครับ');
     }
   }
 
   onSubmit() {
+    console.log('onSubmit called'); // Debug
     if (this.resumeForm.valid) {
+      console.log('Form valid, submitting...'); // Debug
       this.isSubmitting = true;
       const formVal = this.resumeForm.value;
       const currentUser = this.auth.currentUser();
+      console.log('Current User:', currentUser); // Debug
 
       if (currentUser) {
         const resume: Resume = {
@@ -223,22 +291,30 @@ export class ResumeEditorComponent implements OnInit {
           this.auth.updateUser(updatedUser);
         }
 
-        this.resumeService.saveResume(resume).subscribe(() => {
-          this.isSubmitting = false;
-          alert('Resume saved successfully!');
-          this.router.navigate(['/dashboard']);
+        this.resumeService.saveResume(resume).subscribe({
+          next: () => {
+            console.log('Save success'); // Debug
+            this.isSubmitting = false;
+            alert(this.route.snapshot.paramMap.get('id') ? 'บันทึกการแก้ไขเรียบร้อยแล้วครับ! 💾' : 'สร้างเรซูเม่ใหม่เรียบร้อยแล้วครับ! ไปดูที่หน้าแดชบอร์ดกันเลย 🚀');
+            this.router.navigate(['/dashboard']);
+          },
+          error: (err) => {
+            console.error('Save error', err); // Debug
+            this.isSubmitting = false;
+            console.error('Save failed', err);
+            alert('เกิดข้อผิดพลาดในการบันทึก: ' + (err.message || 'กรุณาลองใหม่อีกครั้งครับ'));
+          }
         });
+      } else {
+        console.warn('No user logged in'); // Debug
+        this.isSubmitting = false;
+        alert('เซสชั่นหมดอายุ กรุณาเข้าสู่ระบบใหม่ครับ');
+        this.router.navigate(['/login']);
       }
     } else {
       console.warn('[ResumeEditor] Form invalid:', this.resumeForm.errors);
-      // Log specific invalid controls
-      Object.keys(this.resumeForm.controls).forEach(key => {
-        const control = this.resumeForm.get(key);
-        if (control?.invalid) {
-          console.warn(`[ResumeEditor] Invalid Control: ${key}`, control.errors);
-        }
-      });
-      alert('Please fill in all required fields marked with *');
+      console.log('Form Values:', this.resumeForm.value); // Debug
+      alert('กรุณากรอกข้อมูลในช่องที่มีเครื่องหมาย * ให้ครบถ้วนนะครับ');
       this.resumeForm.markAllAsTouched();
     }
   }

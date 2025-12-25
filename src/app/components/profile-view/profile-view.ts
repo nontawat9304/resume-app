@@ -18,7 +18,7 @@ import { LocalizedDatePipe } from '../../pipes/localized-date.pipe';
   styleUrl: './profile-view.scss'
 })
 export class ProfileViewComponent implements OnInit {
-  resume: Resume | undefined;
+  resume: Resume | null | undefined;
   id: string | null = null;
   userAvatar: string | undefined;
   showDesigner = false;
