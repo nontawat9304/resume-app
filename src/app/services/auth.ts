@@ -28,17 +28,23 @@ export class AuthService {
   currentUser = signal<User | null>(null);
 
   constructor() {
-    // Set persistence to SESSION so closing the tab logs the user out
-    setPersistence(this.auth, browserSessionPersistence).then(() => {
-      // Sync Firebase Auth state with our User interface
-      this.user$.pipe(
-        switchMap(firebaseUser => {
-          if (!firebaseUser) return of(null);
-          return this.getUserDocument(firebaseUser.uid);
-        })
-      ).subscribe(user => {
-        this.currentUser.set(user);
-      });
+    // Attempt to set persistence
+    try {
+      setPersistence(this.auth, browserSessionPersistence)
+        .then(() => console.log('Auth Persistence set to SESSION'))
+        .catch(err => console.error('Auth Persistence Failed:', err));
+    } catch (e) {
+      console.error('Critical Auth Persistence Error:', e);
+    }
+
+    // Sync Firebase Auth state with our User interface
+    this.user$.pipe(
+      switchMap(firebaseUser => {
+        if (!firebaseUser) return of(null);
+        return this.getUserDocument(firebaseUser.uid);
+      })
+    ).subscribe(user => {
+      this.currentUser.set(user);
     });
   }
 
