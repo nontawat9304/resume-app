@@ -1,7 +1,7 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, from, of, switchMap, map, tap, catchError, throwError } from 'rxjs';
-import { Auth, user, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User as FirebaseUser } from '@angular/fire/auth';
+import { Auth, user, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User as FirebaseUser, setPersistence, browserSessionPersistence } from '@angular/fire/auth';
 import { Firestore, doc, setDoc, getDoc, updateDoc, collection, getDocs, deleteDoc } from '@angular/fire/firestore';
 
 export interface User {
@@ -28,14 +28,17 @@ export class AuthService {
   currentUser = signal<User | null>(null);
 
   constructor() {
-    // Sync Firebase Auth state with our User interface
-    this.user$.pipe(
-      switchMap(firebaseUser => {
-        if (!firebaseUser) return of(null);
-        return this.getUserDocument(firebaseUser.uid);
-      })
-    ).subscribe(user => {
-      this.currentUser.set(user);
+    // Set persistence to SESSION so closing the tab logs the user out
+    setPersistence(this.auth, browserSessionPersistence).then(() => {
+      // Sync Firebase Auth state with our User interface
+      this.user$.pipe(
+        switchMap(firebaseUser => {
+          if (!firebaseUser) return of(null);
+          return this.getUserDocument(firebaseUser.uid);
+        })
+      ).subscribe(user => {
+        this.currentUser.set(user);
+      });
     });
   }
 
