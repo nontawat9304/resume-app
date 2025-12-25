@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, from, of } from 'rxjs';
-import { getFirestore, collection, doc, setDoc, deleteDoc, query, where, getDocs, onSnapshot, Firestore } from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc, deleteDoc, query, where, getDocs, onSnapshot, Firestore, limit } from 'firebase/firestore';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { environment } from '../../environments/environment';
 import { map } from 'rxjs/operators';
@@ -152,9 +152,28 @@ export class ResumeService {
           return nameMatch || titleMatch || skillMatch;
         });
       } catch (error: any) {
-        console.warn('Search Error (likely missing index or permission):', error);
-        // Fallback: If index fails, try fetching all if dataset is small, or return empty
-        return [];
+        console.warn('Search Index missing, falling back to client-side filter:', error);
+        // Fallback: Fetch latest 50 resumes and filter client-side
+        // This is inefficient for large apps but functional for this prototype without indexes
+        try {
+          const resumesRef = collection(this.firestore, 'resumes'); // Re-declare or use existing resumesRef
+          const snapshot = await getDocs(query(resumesRef, limit(50)));
+          const allDocs = snapshot.docs.map(d => this.mapDateSingle({ id: d.id, ...d.data() })) as Resume[];
+
+          return allDocs.filter(r => {
+            // Basic public check + keyword match
+            const isPublic = r.isPublic === true;
+            if (!isPublic) return false;
+
+            const nameMatch = r.personalInfo?.fullName?.toLowerCase().includes(lowerTerm);
+            const titleMatch = r.title?.toLowerCase().includes(lowerTerm);
+            const skillMatch = Array.isArray(r.skills) && r.skills.some((s: string) => s.toLowerCase().includes(lowerTerm));
+            return nameMatch || titleMatch || skillMatch;
+          });
+        } catch (innerErr) {
+          console.error('Critical Search Failure:', innerErr);
+          return [];
+        }
       }
     })());
   }

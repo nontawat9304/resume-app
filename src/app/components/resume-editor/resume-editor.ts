@@ -73,21 +73,7 @@ export class ResumeEditorComponent implements OnInit {
     });
   }
 
-  generateDescription(index: number) {
-    const expGroup = (this.resumeForm.get('experience') as FormArray).at(index);
-    const title = expGroup.get('title')?.value;
-    const company = expGroup.get('company')?.value;
 
-    if (title && company) {
-      this.isGenerating = true;
-      this.aiService.generateExperienceDescription(title, company).subscribe(desc => {
-        this.isGenerating = false;
-        expGroup.patchValue({ description: desc });
-      });
-    } else {
-      alert('กรุณาระบุ "ชื่อตำแหน่ง" และ "บริษัท" ก่อนให้ AI ช่วยเขียนครับ');
-    }
-  }
 
   ngOnInit() {
     if (!this.auth.isLoggedIn) {
