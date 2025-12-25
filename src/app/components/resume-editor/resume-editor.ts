@@ -6,6 +6,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule, Location } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { PdfService } from '../../services/pdf.service';
+import { AiService } from '../../services/ai';
 
 @Component({
   selector: 'app-resume-editor',
@@ -26,10 +27,11 @@ export class ResumeEditorComponent implements OnInit {
     private route: ActivatedRoute,
     private pdfService: PdfService,
     private location: Location,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private aiService: AiService // Injection
   ) {
     this.resumeForm = this.fb.group({
-      id: [crypto.randomUUID()], // Auto-generate ID
+      id: [crypto.randomUUID()],
       title: ['My Resume', Validators.required],
       personalInfo: this.fb.group({
         fullName: ['', Validators.required],
@@ -44,6 +46,47 @@ export class ResumeEditorComponent implements OnInit {
       skills: [''],
       isPublished: [false]
     });
+  }
+
+  // ... (ngOnInit and loadResume methods remain the same) ...
+
+  // Helper State
+  isGenerating = false;
+
+  async generateSummaryAI() {
+    const jobTitle = this.resumeForm.get('title')?.value;
+    const skills = this.resumeForm.get('skills')?.value || '';
+
+    if (!jobTitle) {
+      alert('กรุณาระบุ "ชื่อเรซูเม่" หรือตำแหน่งงานเป้าหมายก่อนครับ');
+      return;
+    }
+
+    this.isGenerating = true;
+    const skillList = typeof skills === 'string' ? skills.split(',') : (skills || []);
+
+    this.aiService.generateSummary(jobTitle, skillList).subscribe(summary => {
+      this.isGenerating = false;
+      this.resumeForm.patchValue({
+        personalInfo: { summary: summary }
+      });
+    });
+  }
+
+  generateDescription(index: number) {
+    const expGroup = (this.resumeForm.get('experience') as FormArray).at(index);
+    const title = expGroup.get('title')?.value;
+    const company = expGroup.get('company')?.value;
+
+    if (title && company) {
+      this.isGenerating = true;
+      this.aiService.generateExperienceDescription(title, company).subscribe(desc => {
+        this.isGenerating = false;
+        expGroup.patchValue({ description: desc });
+      });
+    } else {
+      alert('กรุณาระบุ "ชื่อตำแหน่ง" และ "บริษัท" ก่อนให้ AI ช่วยเขียนครับ');
+    }
   }
 
   ngOnInit() {
@@ -258,15 +301,7 @@ export class ResumeEditorComponent implements OnInit {
     group.patchValue({ image: '' });
   }
 
-  generateDescription(index: number) {
-    const expGroup = (this.resumeForm.get('experience') as FormArray).at(index);
-    const title = expGroup.get('title')?.value;
-    if (title) {
-      expGroup.patchValue({ description: `(ตัวอย่าง AI) รับผิดชอบงานด้าน ${title} โดยมีการวางแผนและดำเนินการ...` });
-    } else {
-      alert('กรุณาระบุ "ชื่อตำแหน่งงาน" ก่อนให้ AI ช่วยเขียนครับ');
-    }
-  }
+
 
   onSubmit() {
     console.log('onSubmit called'); // Debug

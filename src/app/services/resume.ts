@@ -134,19 +134,28 @@ export class ResumeService {
     if (!lowerTerm) return of([]);
 
     return from((async () => {
-      // Fetches ALL public resumes (caution: scaling issue in production)
-      const resumesRef = collection(this.firestore, 'resumes');
-      const q = query(resumesRef, where('isPublic', '==', true));
+      try {
+        const resumesRef = collection(this.firestore, 'resumes');
+        // Simple equality check is fast and doesn't always require composite index
+        const q = query(resumesRef, where('isPublic', '==', true));
 
-      const snapshot = await getDocs(q);
-      const allPublic = snapshot.docs.map(d => this.mapDateSingle({ id: d.id, ...d.data() })) as Resume[];
+        const snapshot = await getDocs(q);
+        const allPublic = snapshot.docs.map(d => this.mapDateSingle({ id: d.id, ...d.data() })) as Resume[];
 
-      return allPublic.filter(r => {
-        const nameMatch = r.personalInfo?.fullName?.toLowerCase().includes(lowerTerm);
-        const titleMatch = r.title?.toLowerCase().includes(lowerTerm);
-        const skillMatch = r.skills?.some((s: string) => s.toLowerCase().includes(lowerTerm));
-        return nameMatch || titleMatch || skillMatch;
-      });
+        // Perform text search on client-side (Firestore doesn't support native full-text search)
+        return allPublic.filter(r => {
+          const nameMatch = r.personalInfo?.fullName?.toLowerCase().includes(lowerTerm);
+          const titleMatch = r.title?.toLowerCase().includes(lowerTerm);
+          // Safe navigation for skills array
+          const skillMatch = Array.isArray(r.skills) && r.skills.some((s: string) => s.toLowerCase().includes(lowerTerm));
+
+          return nameMatch || titleMatch || skillMatch;
+        });
+      } catch (error: any) {
+        console.warn('Search Error (likely missing index or permission):', error);
+        // Fallback: If index fails, try fetching all if dataset is small, or return empty
+        return [];
+      }
     })());
   }
 
