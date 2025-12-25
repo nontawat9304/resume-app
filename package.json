@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "node server.js",
+    "dev": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
@@ -36,6 +37,7 @@
     "animate.css": "^4.1.1",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.13.1",
+    "express": "^5.2.1",
     "firebase": "^12.7.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.4",
