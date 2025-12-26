@@ -34,6 +34,7 @@ export class SearchResultsComponent implements OnInit {
     this.route.queryParams.pipe(
       switchMap(params => {
         this.query = params['q'] || '';
+        console.log('Search Query:', this.query);
 
         if (this.query) {
           return forkJoin({
@@ -44,17 +45,18 @@ export class SearchResultsComponent implements OnInit {
         return of({ resumes: [], users: [] });
       })
     ).subscribe(({ resumes, users }) => {
+      console.log('Search Results:', resumes);
       if (this.query) {
         this.results = resumes.map((r: any) => {
           const user = (users as any[]).find(u => u.id === r.userId);
           return { ...r, avatar: user?.avatar };
         });
-
-
         this.cd.detectChanges();
       } else {
         this.results = [];
       }
+    }, error => {
+      console.error('Search Error:', error);
     });
   }
 }

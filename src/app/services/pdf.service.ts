@@ -82,6 +82,7 @@ export class PdfService {
         clone.style.width = '210mm';
         clone.style.minHeight = '297mm';
         clone.style.background = '#ffffff'; // Force white background
+        clone.style.backgroundColor = '#ffffff'; // Double force
         clone.style.margin = '0';
         clone.style.padding = '20px'; // Add padding
         clone.style.zIndex = '10000'; // Visible on top of everything
@@ -105,7 +106,7 @@ export class PdfService {
         try {
             // 5. CAPTURE
             const canvas = await html2canvas(clone, {
-                scale: 5, // Ultra High Res (Max Sharpness)
+                scale: 2, // Reduced from 5 to 2 to prevent "Black Screen" (Max Texture Size limits)
                 useCORS: true,
                 allowTaint: false,
                 backgroundColor: '#ffffff', // Fix: Transparent background becomes black in JPEG
