@@ -107,7 +107,7 @@ export class PdfService {
             const canvas = await html2canvas(clone, {
                 scale: 5, // Ultra High Res (Max Sharpness)
                 useCORS: true,
-                allowTaint: true,
+                allowTaint: false, // Critical: Must be false to use toDataURL
                 logging: false,
                 scrollX: 0,
                 scrollY: 0,
@@ -138,6 +138,7 @@ export class PdfService {
             pdf.save(fileName + '.pdf');
         } catch (error) {
             console.error('PDF Generation Error:', error);
+            alert('ขออภัย เกิดข้อผิดพลาดในการสร้าง PDF (อาจเกิดจากรูปภาพ)\nลองเปลี่ยนรูปภาพหรือลองใหม่อีกครั้งนะครับ');
         } finally {
             // 6. REMOVE clone
             document.body.removeChild(clone);
