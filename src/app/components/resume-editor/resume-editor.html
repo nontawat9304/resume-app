@@ -52,86 +52,138 @@
 
     <!-- WRAPPER FOR EXPORT (Hidden) -->
     <!-- Added min-height A4 and flex column -->
+    <!-- WRAPPER FOR EXPORT (Hidden) -->
+    <!-- Copied structure from Profile View for consistency -->
     <div id="resume-editor-export"
-        class="pdf-export-container bg-white text-dark p-0 position-absolute top-0 start-0 d-none"
-        style="width: 210mm; min-height: 297mm; z-index: -1000;">
-        <!-- Vibrant Header with Photo -->
-        <div class="pdf-header p-5 d-flex align-items-center text-white"
-            style="background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%); -webkit-print-color-adjust: exact; print-color-adjust: exact;">
-            <!-- Photo Circle (Using IMG) -->
-            <div class="rounded-circle bg-white p-1 me-4 shadow-sm d-flex justify-content-center align-items-center"
-                style="width: 120px; height: 120px; overflow: hidden; flex-shrink: 0;">
-
-                <img *ngIf="auth.currentUser()?.avatar" [src]="auth.currentUser()?.avatar"
-                    style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-
-                <span *ngIf="!auth.currentUser()?.avatar" class="text-secondary fs-1 fw-bold">
-                    {{ resumeForm.value.personalInfo?.fullName?.charAt(0) || 'U' }}
-                </span>
+        class="resume-paper shadow-lg p-5 bg-white text-dark position-absolute top-0 start-0 d-none"
+        style="width: 210mm; min-height: 297mm; z-index: -1000; font-size: 1.1rem;">
+        <!-- Header -->
+        <header class="border-bottom pb-3 mb-3 d-flex align-items-center">
+            <div *ngIf="auth.currentUser()?.avatar"
+                class="me-4 rounded-circle bg-light d-flex justify-content-center align-items-center shadow-sm"
+                style="width: 100px; height: 100px; min-width: 100px; background-size: cover; background-position: center;"
+                [style.background-image]="'url(' + auth.currentUser()?.avatar + ')'">
             </div>
             <div>
-                <h1 class="fw-bold text-uppercase mb-2" style="letter-spacing: 2px;">{{
-                    resumeForm.value.personalInfo?.fullName || 'Your Name' }}</h1>
-                <p class="mb-0 opacity-75 fs-5">{{ resumeForm.value.title || 'Professional Title' }}</p>
-                <div class="d-flex gap-3 mt-3 text-white-50 small">
-                    <span><i class="bi bi-envelope me-1"></i> {{ resumeForm.value.personalInfo?.email }}</span>
-                    <span><i class="bi bi-telephone me-1"></i> {{ resumeForm.value.personalInfo?.phone }}</span>
-                    <span><i class="bi bi-geo-alt me-1"></i> {{ resumeForm.value.personalInfo?.location }}</span>
+                <h1 class="display-4 fw-bold text-uppercase text-primary">{{ resumeForm.value.personalInfo?.fullName }}
+                </h1>
+                <p class="lead mb-0 text-dark">{{ resumeForm.value.title }}</p>
+                <div class="text-muted mt-2">
+                    <span><i class="bi bi-envelope-fill me-2"></i>{{ resumeForm.value.personalInfo?.email }}</span>
+                    <span class="mx-2">|</span>
+                    <span *ngIf="resumeForm.value.personalInfo?.phone"><i class="bi bi-telephone-fill me-2"></i>{{
+                        resumeForm.value.personalInfo?.phone }}</span>
+                    <span class="mx-2" *ngIf="resumeForm.value.personalInfo?.phone">|</span>
+                    <span *ngIf="resumeForm.value.personalInfo?.location"><i class="bi bi-geo-alt-fill me-2"></i>{{
+                        resumeForm.value.personalInfo?.location }}</span>
                 </div>
             </div>
-        </div>
+        </header>
 
-        <div class="p-5">
-            <!-- Summary -->
-            <div class="mb-5" *ngIf="resumeForm.value.personalInfo?.summary">
-                <h5 class="fw-bold text-uppercase text-primary border-bottom border-2 border-primary pb-2 mb-3">
-                    Professional Summary</h5>
-                <p class="text-secondary" style="line-height: 1.6;">{{ resumeForm.value.personalInfo?.summary }}</p>
-            </div>
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-md-8">
+                <!-- Summary -->
+                <section class="mb-4" *ngIf="resumeForm.value.personalInfo?.summary">
+                    <h4 class="text-uppercase fw-bold text-dark mb-3">{{ 'EDITOR.SUMMARY' | translate }}</h4>
+                    <p>{{ resumeForm.value.personalInfo?.summary }}</p>
+                </section>
 
-            <div class="row">
-                <!-- Left Col: Experience -->
-                <div class="col-8 pe-4">
-                    <div class="mb-5" *ngIf="resumeForm.value.experience?.length">
-                        <h5 class="fw-bold text-uppercase text-primary border-bottom border-2 border-primary pb-2 mb-4">
-                            Experience</h5>
-                        <div *ngFor="let exp of resumeForm.value.experience"
-                            class="mb-4 position-relative ps-3 border-start border-3 border-light">
-                            <div class="d-flex justify-content-between align-items-baseline mb-1">
-                                <h6 class="fw-bold mb-0 fs-5">{{ exp.title }}</h6>
-                                <small class="text-muted fw-bold">{{ exp.startDate | date:'MMM yyyy' }} - {{
-                                    exp.currentlyWorking ? 'Present' : (exp.endDate | date:'MMM yyyy') }}</small>
+                <!-- Experience -->
+                <section class="mb-4">
+                    <h4 class="text-uppercase fw-bold text-dark mb-3">{{ 'EDITOR.EXPERIENCE' | translate }}</h4>
+                    <div *ngFor="let exp of resumeForm.value.experience" class="mb-3 pb-2 border-bottom">
+                        <div class="d-flex justify-content-between align-items-baseline mb-1">
+                            <h5 class="fw-normal mb-0 text-dark">
+                                {{ exp.title }} <span class="text-muted fw-normal">{{ 'EDITOR.AT' | translate }} {{
+                                    exp.company }}</span>
+                            </h5>
+                            <small class="text-secondary text-nowrap ms-3">
+                                {{ exp.startDate | date }} - {{ exp.currentlyWorking ? ('EDITOR.PRESENT' | translate)
+                                : (exp.endDate | date) }}
+                            </small>
+                        </div>
+                        <p class="text-dark mb-0 small" style="line-height: 1.5;">{{ exp.description }}</p>
+                    </div>
+                </section>
+
+                <!-- Training & Certifications -->
+                <section class="mb-4" *ngIf="resumeForm.value.training && resumeForm.value.training.length > 0">
+                    <h4 class="text-uppercase fw-bold text-dark mb-3">{{ 'EDITOR.TRAINING' | translate }}</h4>
+                    <div class="row">
+                        <div *ngFor="let train of resumeForm.value.training" class="col-12 mb-4">
+                            <div class="card border-0 shadow-sm h-100 bg-light">
+                                <div class="row g-0">
+                                    <div class="col-md-3" *ngIf="train.image">
+                                        <img [src]="train.image" class="img-fluid rounded-start h-100"
+                                            style="object-fit: cover; min-height: 150px;" alt="...">
+                                    </div>
+                                    <div class="col-md-{{ train.image ? '9' : '12' }}">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-baseline mb-1">
+                                                <h5 class="fw-semibold mb-0 text-dark">
+                                                    {{ train.name }}
+                                                    <span class="text-muted fw-normal">{{ 'EDITOR.AT' | translate
+                                                        }} {{ train.issuer }}</span>
+                                                </h5>
+                                                <small class="text-secondary text-nowrap ms-3">
+                                                    {{ train.startDate | date }} - {{ train.endDate | date }}
+                                                </small>
+                                            </div>
+
+                                            <div class="mb-2">
+                                                <span class="badge bg-light text-dark border me-2 fw-normal"
+                                                    *ngIf="train.courseCode">{{ train.courseCode }}</span>
+                                                <span class="badge bg-light text-dark border fw-normal"
+                                                    *ngIf="train.skillType">{{ train.skillType }}</span>
+                                            </div>
+
+                                            <div class="small bg-white p-3 rounded border mt-2">
+                                                <div *ngIf="train.learningObjective" class="mb-2">
+                                                    {{ 'EDITOR.OBJECTIVE' | translate }}: {{ train.learningObjective
+                                                    }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <p class="text-primary mb-2 fw-medium">{{ exp.company }}</p>
-                            <p class="small text-secondary mb-0">{{ exp.description }}</p>
                         </div>
                     </div>
-                </div>
+                </section>
+            </div>
 
-                <!-- Right Col: Skills & Training -->
-                <div class="col-4">
-                    <div class="mb-5" *ngIf="resumeForm.value.skills">
-                        <h5 class="fw-bold text-uppercase text-primary border-bottom border-2 border-primary pb-2 mb-3">
-                            Skills</h5>
-                        <div class="d-flex flex-wrap gap-2">
-                            <ng-container *ngIf="resumeForm.value.skills.length">
-                                <span class="badge bg-light text-dark border fw-normal p-2">{{ resumeForm.value.skills
-                                    }}</span>
-                            </ng-container>
+            <!-- Right Column -->
+            <div class="col-md-4 border-start ps-4">
+                <!-- Education -->
+                <section class="mb-4">
+                    <h4 class="text-uppercase fw-bold text-dark mb-3">{{ 'EDITOR.EDUCATION' | translate }}</h4>
+                    <div *ngFor="let edu of resumeForm.value.education" class="mb-3 pb-2 border-bottom">
+                        <div class="mb-1">
+                            <span class="fw-normal text-dark">{{ edu.degree }}</span>
+                            <span *ngIf="edu.fieldOfStudy" class="fw-normal text-dark">, {{ edu.fieldOfStudy
+                                }}</span>
+                            <span class="text-muted fw-normal"> {{ 'EDITOR.AT' | translate }} {{ edu.school }}</span>
+                            <small class="text-secondary ms-2">
+                                ({{ edu.startDate ? (edu.startDate | date) + ' - ' : '' }}{{ edu.graduationDate |
+                                date }})
+                            </small>
                         </div>
                     </div>
+                </section>
 
-                    <!-- Training Section in PDF -->
-                    <div class="mb-5" *ngIf="resumeForm.value.training?.length">
-                        <h5 class="fw-bold text-uppercase text-primary border-bottom border-2 border-primary pb-2 mb-3">
-                            Certifications</h5>
-                        <div *ngFor="let train of resumeForm.value.training" class="mb-3">
-                            <p class="fw-bold mb-0 small">{{ train.name }}</p>
-                            <small class="text-muted d-block">{{ train.issuer }} &bull; {{ train.date | date:'yyyy'
-                                }}</small>
-                        </div>
-                    </div>
-                </div>
+                <!-- Skills -->
+                <section class="mb-4" *ngIf="resumeForm.value.skills">
+                    <h4 class="text-uppercase fw-bold text-dark mb-3">{{ 'EDITOR.SKILLS' | translate }}</h4>
+                    <ul class="list-unstyled">
+                        <!-- Skills in form is a comma sep string usually, or array if parsed. Check Model.
+                             Model says string[] but Form says string usually until save. 
+                             In Editor TS, it's patched as string joined by comma. -->
+                        <li class="mb-1 text-dark border-bottom pb-1 small">
+                            {{ resumeForm.value.skills }}
+                        </li>
+                    </ul>
+                </section>
             </div>
         </div>
     </div>
