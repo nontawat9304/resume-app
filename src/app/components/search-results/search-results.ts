@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule, Location } from '@angular/common';
 import { ResumeService, Resume } from '../../services/resume';
 import { AuthService } from '../../services/auth';
 import { TranslateModule } from '@ngx-translate/core';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { switchMap, catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-search-results',
@@ -21,7 +22,8 @@ export class SearchResultsComponent implements OnInit {
     private route: ActivatedRoute,
     private resumeService: ResumeService,
     private auth: AuthService,
-    private location: Location
+    private location: Location,
+    private cd: ChangeDetectorRef
   ) { }
 
   goBack() {
@@ -29,19 +31,29 @@ export class SearchResultsComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.route.queryParams.subscribe(params => {
-      this.query = params['q'] || '';
-      if (this.query) {
-        // Fetch Resumes and Users
-        forkJoin({
-          resumes: this.resumeService.searchResumes(this.query),
-          users: this.auth.getAllUsers()
-        }).subscribe(({ resumes, users }) => {
-          this.results = resumes.map((r: any) => {
-            const user = users.find(u => u.id === r.userId);
-            return { ...r, avatar: user?.avatar };
+    this.route.queryParams.pipe(
+      switchMap(params => {
+        this.query = params['q'] || '';
+
+        if (this.query) {
+          return forkJoin({
+            resumes: this.resumeService.searchResumes(this.query),
+            users: this.auth.getAllUsers().pipe(catchError(() => of([])))
           });
+        }
+        return of({ resumes: [], users: [] });
+      })
+    ).subscribe(({ resumes, users }) => {
+      if (this.query) {
+        this.results = resumes.map((r: any) => {
+          const user = (users as any[]).find(u => u.id === r.userId);
+          return { ...r, avatar: user?.avatar };
         });
+
+
+        this.cd.detectChanges();
+      } else {
+        this.results = [];
       }
     });
   }

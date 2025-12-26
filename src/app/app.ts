@@ -25,6 +25,7 @@ export class App implements OnInit {
     public auth: AuthService,
     private migrationService: DataMigrationService
   ) {
+
     translate.setDefaultLang('th');
     translate.use('th');
   }
@@ -64,8 +65,16 @@ export class App implements OnInit {
 
   onSearch() {
     if (this.searchTerm.trim()) {
-      this.router.navigate(['/search'], { queryParams: { q: this.searchTerm } });
-      this.searchTerm = ''; // Clear search term after navigation
+      // Force reload if already on search page
+      if (this.router.url.startsWith('/search')) {
+        this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+          this.router.navigate(['/search'], { queryParams: { q: this.searchTerm } });
+        });
+      } else {
+        this.router.navigate(['/search'], { queryParams: { q: this.searchTerm } });
+      }
+      // Keep searchTerm for UX? Or clear? User preference.
+      // this.searchTerm = ''; 
     }
   }
 

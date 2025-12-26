@@ -28,7 +28,10 @@ service cloud.firestore {
 
     // Resumes Collection
     match /resumes/{resumeId} {
-      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || resource.data.isPublic == true);
+      // DEBUGGING: Temporarily allow ALL reads to verify Data vs Rules issue
+      allow read: if true; 
+      // allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // allow read: if resource.data.isPublic == true;
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }

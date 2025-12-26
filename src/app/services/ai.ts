@@ -13,37 +13,62 @@ export class AiService {
 
   constructor() {
     const apiKey = (environment as any).GEMINI_API_KEY || '';
+    // if (!apiKey) console.warn('AI Service: Missing API Key!');
+    // else console.log('AI Service: Key loaded (ends with ' + apiKey.slice(-4) + ')');
+
     this.genAI = new GoogleGenerativeAI(apiKey);
+    // Trying gemini-1.5-flash with the NEW KEY.
     this.model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
   }
 
-  generateSummary(jobTitle: string, keywords: string[]): Observable<string> {
-    if (!jobTitle) return of('');
+  async generateSummary(jobTitle: string, keywords: string[]): Promise<string> {
+    // MOCK DATA RESPONSE
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve(`ผู้เชี่ยวชาญด้าน ${jobTitle} ที่มีความกระตือรือล้นและมีประสบการณ์ในการแก้ปัญหา มีทักษะในด้าน ${keywords.join(', ')} พร้อมที่จะเรียนรู้เทคโนโลยีใหม่ๆ และมุ่งมั่นที่จะพัฒนาตนเองเพื่อสร้างคุณค่าให้กับองค์กร (Mock Data Generated)`);
+      }, 1000);
+    });
 
-    const prompt = `Write a professional resume summary for a ${jobTitle}. 
-    Keywords to include: ${keywords.join(', ')}. 
-    Keep it under 50 words. Professional tone.`;
+    /* REAL AI IMPLEMENTATION (Disabled due to API/Region issues)
+    const prompt = `Write a professional resume summary...`;
+    try {
+      const result = await this.model.generateContent(prompt);
+      return result.response.text();
+    } catch (error: any) { ... } 
+    */
+  }
 
-    return from(this.model.generateContent(prompt)).pipe(
-      map((result: any) => result.response.text()),
-      catchError(err => {
-        console.error('AI Generation Error:', err);
-        return of('Error generating summary. Please try again.');
-      })
+  // Wrapper to return Observable
+  generateSummaryObs(jobTitle: string, keywords: string[]): Observable<string> {
+    return from(this.generateSummary(jobTitle, keywords)).pipe(
+      catchError(err => of('Error generating summary. Please check API Key/Region.'))
     );
   }
 
-  generateExperienceDescription(role: string, company: string): Observable<string> {
-    const prompt = `Write 3 bullet points for a resume experience section.
-    Role: ${role}
-    Company: ${company}
-    Focus on achievements and impact. match the style of a modern tech resume.`;
+  generateExperienceDescription(title: string, company: string): Observable<string> {
+    return this.generateExperienceDescriptionObs(title, company);
+  }
 
-    return from(this.model.generateContent(prompt)).pipe(
-      map((result: any) => result.response.text()),
+  async generateExperienceDescriptionPromise(title: string, company: string): Promise<string> {
+    // MOCK DATA RESPONSE
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve(`• รับผิดชอบงานในตำแหน่ง ${title} ที่ ${company}\n• ประสานงานและร่วมมือกับทีมเพื่อบรรลุเป้าหมายของโครงการ\n• แก้ไขปัญหาหน้างานและปรับปรุงกระบวนการทำงานให้มีประสิทธิภาพ (Mock Data Generated)`);
+      }, 1000);
+    });
+
+    /* REAL AI IMPLEMENTATION (Disabled)
+    const prompt = `Write a professional resume job description...`;
+    ... 
+    */
+  }
+
+  generateExperienceDescriptionObs(title: string, company: string): Observable<string> {
+    return from(this.generateExperienceDescriptionPromise(title, company)).pipe(
       catchError(err => {
-        console.error('AI Generation Error:', err);
-        return of('Could not generate description.');
+        console.error('AI Service Error:', err);
+        return of('Error generating description.');
       })
     );
   }

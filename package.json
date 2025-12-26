@@ -50,6 +50,7 @@
     "@angular/cli": "^21.0.4",
     "@angular/compiler-cli": "^21.0.0",
     "angular-cli-ghpages": "^2.0.3",
+    "firebase-tools": "^15.1.0",
     "jsdom": "^27.1.0",
     "typescript": "~5.9.2",
     "vitest": "^4.0.8"

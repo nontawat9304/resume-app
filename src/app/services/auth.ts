@@ -29,13 +29,16 @@ export class AuthService {
 
   constructor() {
     // Attempt to set persistence
+    // Attempt to set persistence (Temporarily disabled due to SDK mismatch 'cls is not a constructor')
+    /*
     try {
       setPersistence(this.auth, browserSessionPersistence)
-        .then(() => console.log('Auth Persistence set to SESSION'))
+        .then(() => {})
         .catch(err => console.error('Auth Persistence Failed:', err));
     } catch (e) {
       console.error('Critical Auth Persistence Error:', e);
     }
+    */
 
     // Sync Firebase Auth state with our User interface
     this.user$.pipe(
@@ -51,19 +54,20 @@ export class AuthService {
   // --- Auth Actions ---
 
   login(email: string, password: string): Observable<any> {
+
     return from(signInWithEmailAndPassword(this.auth, email, password)).pipe(
-      // Pass both credential and user data down the chain to ensure we have the UID
+
       switchMap(credential =>
         this.getUserDocument(credential.user.uid).pipe(
           map(user => ({ user, uid: credential.user.uid }))
         )
       ),
       map(({ user, uid }) => {
+
         if (user) {
-          // Self-Healing: User is the hardcoded admin but role isn't set
+          // Self-Healing
           if (user.email === 'admin@test.com' && user.role !== 'admin') {
-            user.role = 'admin'; // Update local state for immediate UI check
-            // Use the captured UID to ensure path is correct (users/uid)
+            user.role = 'admin';
             const userRef = doc(this.firestore, `users/${uid}`);
             updateDoc(userRef, { role: 'admin' }).catch(e => console.error("Admin auto-update failed", e));
           }
@@ -71,19 +75,23 @@ export class AuthService {
             signOut(this.auth);
             return { success: false, message: 'AUTH.USER_DISABLED' };
           }
+          // Navigate only after knowing success
+          // Delay navigation slightly to let component receive success
           if (user.role === 'admin') this.router.navigate(['/admin']);
           else this.router.navigate(['/dashboard']);
           return { success: true, user };
         } else {
-          // Recovery: Auth exists but Firestore doc missing
+          // Recovery
           const currentUser = this.auth.currentUser;
           if (currentUser || uid) {
+
             const recoveryUser: User = {
               id: uid,
               name: currentUser?.displayName || 'User',
               email: currentUser?.email || email || '',
               role: (currentUser?.email || email) === 'admin@test.com' ? 'admin' : 'user',
-              isActive: true
+              isActive: true,
+              avatar: ''
             };
             this.createUserDocument(recoveryUser);
             this.router.navigate(['/dashboard']);
@@ -92,7 +100,10 @@ export class AuthService {
           return { success: false, message: 'AUTH.USER_NOT_FOUND' };
         }
       }),
-      catchError(err => throwError(() => this.mapFirebaseError(err)))
+      catchError(err => {
+        console.error('[Auth] Login Error Stream:', err);
+        return throwError(() => this.mapFirebaseError(err));
+      })
     );
   }
 
@@ -135,8 +146,14 @@ export class AuthService {
       case 'auth/too-many-requests': return 'AUTH.TOO_MANY_REQUESTS';
       case 'auth/network-request-failed': return 'AUTH.NETWORK_ERROR';
       default:
+        // Log raw error for debugging 400s
+        console.error('Firebase Auth Error:', err);
+        if (err.message && err.message.includes('INVALID_LOGIN_CREDENTIALS')) {
+          return 'AUTH.INVALID_CREDENTIALS';
+        }
         if (err.message && (err.message.includes('offline') || err.message.includes('400'))) {
-          return 'AUTH.DATABASE_ERROR';
+          // 400 Bad Request usually means Invalid Payload or Key, but can be credentials
+          return 'AUTH.INVALID_CREDENTIALS';
         }
         return code || err.message; // Return raw code if not found
     }

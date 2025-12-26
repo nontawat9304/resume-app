@@ -4,7 +4,8 @@
             <div class="card-body p-5">
                 <h3 class="text-center mb-4 fw-bold">{{ 'AUTH.LOGIN_TITLE' | translate }}</h3>
 
-                <div *ngIf="error" class="alert alert-danger animate__animated animate__shakeX">
+                <div *ngIf="error" class="alert alert-danger animate__animated"
+                    [ngClass]="{'animate__shakeX': shakeError}">
                     {{ error }}
                 </div>
 

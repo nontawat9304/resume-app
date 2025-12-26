@@ -16,7 +16,7 @@ export const routes: Routes = [
     { path: 'about', loadComponent: () => import('./components/about/about').then(m => m.AboutComponent) },
     { path: 'editor', component: ResumeEditorComponent },
     { path: 'editor/:id', component: ResumeEditorComponent },
-    { path: 'search', loadComponent: () => import('./components/search-results/search-results').then(m => m.SearchResultsComponent) },
+    { path: 'search', loadComponent: () => import('./components/search-results/search-results').then(m => m.SearchResultsComponent), runGuardsAndResolvers: 'always' },
     { path: 'p/:id', component: ProfileViewComponent },
     { path: '**', redirectTo: 'login' }
 ];

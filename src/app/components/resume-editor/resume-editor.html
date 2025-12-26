@@ -10,7 +10,23 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="d-flex gap-2">
+        <div class="d-flex align-items-center gap-3">
+            <!-- Public Toggle -->
+            <div class="bg-white rounded-pill px-3 py-2 border shadow-sm d-flex align-items-center">
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="publicSwitch" [formControl]="isPublishedControl"
+                        style="cursor: pointer;">
+                    <label class="form-check-label fw-bold ms-2 small" for="publicSwitch" style="cursor: pointer;">
+                        <span *ngIf="resumeForm.get('isPublished')?.value" class="text-success">
+                            <i class="bi bi-globe"></i> เผยแพร่ (ค้นหาเจอ)
+                        </span>
+                        <span *ngIf="!resumeForm.get('isPublished')?.value" class="text-secondary">
+                            <i class="bi bi-lock"></i> ส่วนตัว (ซ่อนไว้)
+                        </span>
+                    </label>
+                </div>
+            </div>
+
             <div class="dropdown">
                 <button class="btn btn-info text-white dropdown-toggle" type="button" data-bs-toggle="dropdown">
                     <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
@@ -210,14 +226,8 @@
                             </div>
                             <div class="col-12 mb-3">
                                 <label class="form-label">{{ 'EDITOR.DESCRIPTION_LABEL' | translate }}</label>
-                                <div class="input-group">
-                                    <textarea class="form-control glass-input" rows="3"
-                                        formControlName="description"></textarea>
-                                    <button class="btn btn-outline-secondary" type="button"
-                                        (click)="generateDescription(i)">
-                                        <i class="bi bi-stars"></i> {{ 'EDITOR.AI_WRITER' | translate }}
-                                    </button>
-                                </div>
+                                <textarea class="form-control glass-input" rows="3"
+                                    formControlName="description"></textarea>
                             </div>
                         </div>
                     </div>

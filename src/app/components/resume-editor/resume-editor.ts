@@ -65,7 +65,7 @@ export class ResumeEditorComponent implements OnInit {
     this.isGenerating = true;
     const skillList = typeof skills === 'string' ? skills.split(',') : (skills || []);
 
-    this.aiService.generateSummary(jobTitle, skillList).subscribe(summary => {
+    this.aiService.generateSummaryObs(jobTitle, skillList).subscribe((summary: string) => {
       this.isGenerating = false;
       this.resumeForm.patchValue({
         personalInfo: { summary: summary }
@@ -106,6 +106,7 @@ export class ResumeEditorComponent implements OnInit {
           title: resume.title,
           personalInfo: resume.personalInfo,
           skills: resume.skills.join(', '),
+          isPublished: resume.isPublic || false // MAP isPublic (Model) -> isPublished (Form)
         });
 
         this.patchArray('experience', resume.experience);
@@ -173,6 +174,10 @@ export class ResumeEditorComponent implements OnInit {
 
   get trainingControls() {
     return (this.resumeForm.get('training') as FormArray).controls as FormGroup[];
+  }
+
+  get isPublishedControl() {
+    return this.resumeForm.get('isPublished') as import('@angular/forms').FormControl;
   }
 
   addExperience() {
@@ -306,19 +311,20 @@ export class ResumeEditorComponent implements OnInit {
   }
 
   onSubmit() {
-    console.log('onSubmit called'); // Debug
+
     if (this.resumeForm.valid) {
-      console.log('Form valid, submitting...'); // Debug
+
       this.isSubmitting = true;
       const formVal = this.resumeForm.value;
       const currentUser = this.auth.currentUser();
-      console.log('Current User:', currentUser); // Debug
+
 
       if (currentUser) {
         const resume: Resume = {
           ...formVal,
           userId: currentUser.id,
           skills: typeof formVal.skills === 'string' ? formVal.skills.split(',').map((s: string) => s.trim()) : formVal.skills,
+          isPublic: formVal.isPublished, // MAP isPublished (Form) -> isPublic (Model)
           updatedAt: new Date()
         };
 
@@ -330,9 +336,9 @@ export class ResumeEditorComponent implements OnInit {
 
         this.resumeService.saveResume(resume).subscribe({
           next: () => {
-            console.log('Save success'); // Debug
+
             this.isSubmitting = false;
-            alert(this.route.snapshot.paramMap.get('id') ? 'บันทึกการแก้ไขเรียบร้อยแล้วครับ! 💾' : 'สร้างเรซูเม่ใหม่เรียบร้อยแล้วครับ! ไปดูที่หน้าแดชบอร์ดกันเลย 🚀');
+            alert(this.route.snapshot.paramMap.get('id') ? 'บันทึกการแก้ไขเรียบร้อย! 💾' : 'สร้างเรซูเม่ใหม่เรียบร้อย! ไปดูที่หน้าแดชบอร์ดกันเลย 🚀');
             this.router.navigate(['/dashboard']);
           },
           error: (err) => {
@@ -350,7 +356,7 @@ export class ResumeEditorComponent implements OnInit {
       }
     } else {
       console.warn('[ResumeEditor] Form invalid:', this.resumeForm.errors);
-      console.log('Form Values:', this.resumeForm.value); // Debug
+
       alert('กรุณากรอกข้อมูลในช่องที่มีเครื่องหมาย * ให้ครบถ้วนนะครับ');
       this.resumeForm.markAllAsTouched();
     }

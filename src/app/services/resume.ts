@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, from, of } from 'rxjs';
-import { getFirestore, collection, doc, setDoc, deleteDoc, query, where, getDocs, onSnapshot, Firestore, limit } from 'firebase/firestore';
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { collection, doc, setDoc, deleteDoc, query, where, getDocs, onSnapshot, Firestore, limit } from '@angular/fire/firestore';
+// import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app'; // Removed
 import { environment } from '../../environments/environment';
 import { map } from 'rxjs/operators';
 
@@ -68,15 +68,14 @@ export interface Resume {
 @Injectable({
   providedIn: 'root'
 })
+@Injectable({
+  providedIn: 'root'
+})
 export class ResumeService {
-  private firestore: Firestore;
-  private app: FirebaseApp;
+  private firestore: Firestore = inject(Firestore);
 
   constructor() {
-    // STANDALONE INIT: Bypass AngularFire DI to avoid SDK version mismatch
-    this.app = getApps().length === 0 ? initializeApp(environment.firebase) : getApp();
-    this.firestore = getFirestore(this.app);
-    console.log('ResumeService: Firestore initialized standalone', this.firestore);
+
   }
 
   getResumesByUser(userId: string): Observable<Resume[]> {
@@ -84,6 +83,8 @@ export class ResumeService {
       let unsubscribe = () => { };
       try {
         const resumesRef = collection(this.firestore, 'resumes');
+
+        // const auth = import('firebase/auth').then(m => ... ); // Removed debug log
         const q = query(resumesRef, where('userId', '==', userId));
 
         unsubscribe = onSnapshot(q, (snapshot) => {
@@ -106,10 +107,13 @@ export class ResumeService {
       let unsubscribe = () => { };
       try {
         const resumeRef = doc(this.firestore, `resumes/${id}`);
+
         unsubscribe = onSnapshot(resumeRef, (snapshot) => {
+
           if (snapshot.exists()) {
             observer.next(this.mapDateSingle({ id: snapshot.id, ...snapshot.data() }) as Resume);
           } else {
+            console.warn('[ResumeService] Doc does not exist!');
             observer.next(null);
           }
         }, (error) => {
@@ -143,7 +147,7 @@ export class ResumeService {
         const allPublic = snapshot.docs.map(d => this.mapDateSingle({ id: d.id, ...d.data() })) as Resume[];
 
         // Perform text search on client-side (Firestore doesn't support native full-text search)
-        return allPublic.filter(r => {
+        const filtered = allPublic.filter(r => {
           const nameMatch = r.personalInfo?.fullName?.toLowerCase().includes(lowerTerm);
           const titleMatch = r.title?.toLowerCase().includes(lowerTerm);
           // Safe navigation for skills array
@@ -151,27 +155,30 @@ export class ResumeService {
 
           return nameMatch || titleMatch || skillMatch;
         });
+
+        return filtered;
       } catch (error: any) {
         console.warn('Search Index missing, falling back to client-side filter:', error);
         // Fallback: Fetch latest 50 resumes and filter client-side
         // This is inefficient for large apps but functional for this prototype without indexes
         try {
-          const resumesRef = collection(this.firestore, 'resumes'); // Re-declare or use existing resumesRef
-          const snapshot = await getDocs(query(resumesRef, limit(50)));
-          const allDocs = snapshot.docs.map(d => this.mapDateSingle({ id: d.id, ...d.data() })) as Resume[];
+          const resumesRef = collection(this.firestore, 'resumes');
+          // Rule Requirement: Must filter by isPublic == true to be allowed to read
+          const q = query(resumesRef, where('isPublic', '==', true));
 
-          return allDocs.filter(r => {
-            // Basic public check + keyword match
-            const isPublic = r.isPublic === true;
-            if (!isPublic) return false;
+          const snapshot = await getDocs(q);
+          const allPublic = snapshot.docs.map(d => this.mapDateSingle({ id: d.id, ...d.data() })) as Resume[];
 
+
+
+          return allPublic.filter(r => {
             const nameMatch = r.personalInfo?.fullName?.toLowerCase().includes(lowerTerm);
             const titleMatch = r.title?.toLowerCase().includes(lowerTerm);
             const skillMatch = Array.isArray(r.skills) && r.skills.some((s: string) => s.toLowerCase().includes(lowerTerm));
             return nameMatch || titleMatch || skillMatch;
           });
         } catch (innerErr) {
-          console.error('Critical Search Failure:', innerErr);
+          console.error('Critical Search Failure (Rules/Index):', innerErr);
           return [];
         }
       }
