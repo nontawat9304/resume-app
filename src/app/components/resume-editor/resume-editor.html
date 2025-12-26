@@ -107,50 +107,10 @@
                     </div>
                 </section>
 
-                <!-- Training & Certifications -->
-                <section class="mb-4" *ngIf="resumeForm.value.training && resumeForm.value.training.length > 0">
-                    <h4 class="text-uppercase fw-bold text-dark mb-3">{{ 'EDITOR.TRAINING' | translate }}</h4>
-                    <div class="row">
-                        <div *ngFor="let train of resumeForm.value.training" class="col-12 mb-4">
-                            <div class="card border-0 shadow-sm h-100 bg-light">
-                                <div class="row g-0">
-                                    <div class="col-md-3" *ngIf="train.image">
-                                        <img [src]="train.image" class="img-fluid rounded-start h-100"
-                                            style="object-fit: cover; min-height: 150px;" alt="...">
-                                    </div>
-                                    <div class="col-md-{{ train.image ? '9' : '12' }}">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-baseline mb-1">
-                                                <h5 class="fw-semibold mb-0 text-dark">
-                                                    {{ train.name }}
-                                                    <span class="text-muted fw-normal">{{ 'EDITOR.AT' | translate
-                                                        }} {{ train.issuer }}</span>
-                                                </h5>
-                                                <small class="text-secondary text-nowrap ms-3">
-                                                    {{ train.startDate | date }} - {{ train.endDate | date }}
-                                                </small>
-                                            </div>
-
-                                            <div class="mb-2">
-                                                <span class="badge bg-light text-dark border me-2 fw-normal"
-                                                    *ngIf="train.courseCode">{{ train.courseCode }}</span>
-                                                <span class="badge bg-light text-dark border fw-normal"
-                                                    *ngIf="train.skillType">{{ train.skillType }}</span>
-                                            </div>
-
-                                            <div class="small bg-white p-3 rounded border mt-2">
-                                                <div *ngIf="train.learningObjective" class="mb-2">
-                                                    {{ 'EDITOR.OBJECTIVE' | translate }}: {{ train.learningObjective
-                                                    }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+                <!-- Training & Certifications (Removed from Export) -->
+                <!-- <section class="mb-4" *ngIf="resumeForm.value.training && resumeForm.value.training.length > 0"> -->
+                <!-- Training hidden from PDF as requested -->
+                <!-- </section> -->
             </div>
 
             <!-- Right Column -->

@@ -30,128 +30,14 @@
                 <p class="text-muted small mb-4 text-truncate" style="max-width: 100%;">
                     {{ resume.personalInfo.summary || 'No summary provided' }}
                 </p>
-                <div class="mt-auto d-flex gap-2">
+                <div class="mt-auto">
                     <a [routerLink]="['/p', resume.id]" class="btn btn-primary rounded-pill px-4 btn-sm">
                         View Profile
                     </a>
-                    <button class="btn btn-outline-info rounded-pill px-3 btn-sm" (click)="onExport(resume)"
-                        title="Export PDF">
-                        <i class="bi bi-file-earmark-pdf"></i>
-                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Hidden Export Container -->
-    <div *ngIf="exportResume" id="search-export-container"
-        class="resume-paper shadow-lg p-5 bg-white text-dark position-absolute top-0 start-0 d-none"
-        style="width: 210mm; min-height: 297mm; z-index: -1000; font-size: 1.1rem;">
-        <!-- Header -->
-        <header class="border-bottom pb-3 mb-3 d-flex align-items-center">
-            <div *ngIf="exportResume.avatar"
-                class="me-4 rounded-circle bg-light d-flex justify-content-center align-items-center shadow-sm"
-                style="width: 100px; height: 100px; min-width: 100px; background-size: cover; background-position: center;"
-                [style.background-image]="'url(' + exportResume.avatar + ')'">
-            </div>
-            <div>
-                <h1 class="display-4 fw-bold text-uppercase text-primary">{{ exportResume.personalInfo.fullName }}</h1>
-                <p class="lead mb-0 text-dark">{{ exportResume.title }}</p>
-                <div class="text-muted mt-2">
-                    <span><i class="bi bi-envelope-fill me-2"></i>{{ exportResume.personalInfo.email }}</span>
-                    <span class="mx-2">|</span>
-                    <span *ngIf="exportResume.personalInfo.phone"><i class="bi bi-telephone-fill me-2"></i>{{
-                        exportResume.personalInfo.phone }}</span>
-                    <span class="mx-2" *ngIf="exportResume.personalInfo.phone">|</span>
-                    <span *ngIf="exportResume.personalInfo.location"><i class="bi bi-geo-alt-fill me-2"></i>{{
-                        exportResume.personalInfo.location }}</span>
-                </div>
-            </div>
-        </header>
 
-        <div class="row">
-            <!-- Left Column -->
-            <div class="col-md-8">
-                <!-- Summary -->
-                <section class="mb-4" *ngIf="exportResume.personalInfo.summary">
-                    <h4 class="text-uppercase fw-bold text-dark mb-3">{{ 'EDITOR.SUMMARY' | translate }}</h4>
-                    <p>{{ exportResume.personalInfo.summary }}</p>
-                </section>
-
-                <!-- Experience -->
-                <section class="mb-4">
-                    <h4 class="text-uppercase fw-bold text-dark mb-3">{{ 'EDITOR.EXPERIENCE' | translate }}</h4>
-                    <div *ngFor="let exp of exportResume.experience" class="mb-3 pb-2 border-bottom">
-                        <div class="d-flex justify-content-between align-items-baseline mb-1">
-                            <h5 class="fw-normal mb-0 text-dark">
-                                {{ exp.title }} <span class="text-muted fw-normal">{{ 'EDITOR.AT' | translate }} {{
-                                    exp.company }}</span>
-                            </h5>
-                            <small class="text-secondary text-nowrap ms-3">
-                                {{ exp.startDate | date }} - {{ exp.currentlyWorking ? ('EDITOR.PRESENT' | translate)
-                                : (exp.endDate | date) }}
-                            </small>
-                        </div>
-                        <p class="text-dark mb-0 small" style="line-height: 1.5;">{{ exp.description }}</p>
-                    </div>
-                </section>
-
-                <!-- Training -->
-                <section class="mb-4" *ngIf="exportResume.training && exportResume.training.length > 0">
-                    <h4 class="text-uppercase fw-bold text-dark mb-3">{{ 'EDITOR.TRAINING' | translate }}</h4>
-                    <div class="row">
-                        <div *ngFor="let train of exportResume.training" class="col-12 mb-4">
-                            <!-- Simplified Training Card for Export -->
-                            <div class="mb-2">
-                                <div class="d-flex justify-content-between align-items-baseline">
-                                    <h5 class="fw-semibold mb-0 text-dark">
-                                        {{ train.name }}
-                                        <span class="text-muted fw-normal">{{ 'EDITOR.AT' | translate
-                                            }} {{ train.issuer }}</span>
-                                    </h5>
-                                    <small class="text-secondary text-nowrap ms-3">
-                                        {{ train.startDate | date }} - {{ train.endDate | date }}
-                                    </small>
-                                </div>
-                                <div class="mb-1">
-                                    <span class="badge bg-light text-dark border me-2 fw-normal"
-                                        *ngIf="train.courseCode">{{ train.courseCode }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <!-- Right Column -->
-            <div class="col-md-4 border-start ps-4">
-                <!-- Education -->
-                <section class="mb-4">
-                    <h4 class="text-uppercase fw-bold text-dark mb-3">{{ 'EDITOR.EDUCATION' | translate }}</h4>
-                    <div *ngFor="let edu of exportResume.education" class="mb-3 pb-2 border-bottom">
-                        <div class="mb-1">
-                            <span class="fw-normal text-dark">{{ edu.degree }}</span>
-                            <span *ngIf="edu.fieldOfStudy" class="fw-normal text-dark">, {{ edu.fieldOfStudy
-                                }}</span>
-                            <span class="text-muted fw-normal"> {{ 'EDITOR.AT' | translate }} {{ edu.school }}</span>
-                            <small class="text-secondary ms-2">
-                                ({{ edu.startDate ? (edu.startDate | date) + ' - ' : '' }}{{ edu.graduationDate |
-                                date }})
-                            </small>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Skills -->
-                <section class="mb-4" *ngIf="exportResume.skills && exportResume.skills.length > 0">
-                    <h4 class="text-uppercase fw-bold text-dark mb-3">{{ 'EDITOR.SKILLS' | translate }}</h4>
-                    <ul class="list-unstyled">
-                        <li *ngFor="let skill of exportResume.skills" class="mb-1 text-dark border-bottom pb-1 small">
-                            {{ skill }}
-                        </li>
-                    </ul>
-                </section>
-            </div>
-        </div>
-    </div>
 </div>

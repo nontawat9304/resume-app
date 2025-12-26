@@ -77,89 +77,12 @@
                 </section>
 
                 <!-- Training & Certifications (Moved to Main Column) -->
-                <section class="mb-4 animate__animated animate__fadeInLeft" style="animation-delay: 0.2s;"
-                    *ngIf="resume.training && resume.training.length > 0" data-html2canvas-ignore="true">
-                    <h4 class="text-uppercase fw-bold text-dark mb-3">{{ 'EDITOR.TRAINING' | translate }}</h4>
-                    <div class="row">
-                        <div *ngFor="let train of resume.training" class="col-12 mb-4">
-                            <div class="card border-0 shadow-sm h-100 bg-light">
-                                <div class="row g-0">
-                                    <div class="col-md-3" *ngIf="train.image">
-                                        <img [src]="train.image" class="img-fluid rounded-start h-100"
-                                            style="object-fit: cover; min-height: 150px;" alt="...">
-                                    </div>
-                                    <div class="col-md-{{ train.image ? '9' : '12' }}">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-baseline mb-1">
-                                                <h5 class="fw-semibold mb-0 text-dark">
-                                                    {{ train.name }}
-                                                    <span class="text-muted fw-normal">{{ 'EDITOR.AT' | translate
-                                                        }} {{ train.issuer }}</span>
-                                                </h5>
-                                                <small class="text-secondary text-nowrap ms-3">
-                                                    {{ train.startDate | locDate }} - {{ train.endDate | locDate }}
-                                                </small>
-                                            </div>
-
-                                            <div class="mb-2">
-                                                <span class="badge bg-light text-dark border me-2 fw-normal"
-                                                    *ngIf="train.courseCode">{{ train.courseCode }}</span>
-                                                <span class="badge bg-light text-dark border fw-normal"
-                                                    *ngIf="train.skillType">{{ train.skillType }}</span>
-                                                <small class="text-success fw-bold ms-2" *ngIf="train.trainingCost">{{
-                                                    train.trainingCost | currency }}</small>
-                                            </div>
-
-                                            <!-- Collapsible Details -->
-                                            <div *ngIf="train.showDetails"
-                                                class="mt-3 animate__animated animate__fadeIn">
-                                                <div class="row small text-secondary mb-2">
-                                                    <div class="col-md-6" *ngIf="train.instructor"><i
-                                                            class="bi bi-person me-1"></i>
-                                                        {{ 'EDITOR.INSTRUCTOR' | translate }}: {{
-                                                        train.instructor }}
-                                                    </div>
-                                                    <div class="col-md-6" *ngIf="train.deliveryMode"><i
-                                                            class="bi bi-display me-1"></i>
-                                                        {{ 'EDITOR.DELIVERY_MODE' | translate }}: {{
-                                                        train.deliveryMode }}
-                                                    </div>
-                                                    <div class="col-md-6" *ngIf="train.trainingLevel"><i
-                                                            class="bi bi-bar-chart me-1"></i>
-                                                        {{ 'EDITOR.TRAINING_LEVEL' | translate }}: {{
-                                                        train.trainingLevel }}
-                                                    </div>
-                                                </div>
-
-                                                <div class="small bg-white p-3 rounded border">
-                                                    <div *ngIf="train.learningObjective" class="mb-2">
-                                                        {{ 'EDITOR.OBJECTIVE' | translate }}: {{ train.learningObjective
-                                                        }}
-                                                    </div>
-                                                    <div *ngIf="train.prerequisites" class="mb-2">
-                                                        {{ 'EDITOR.PREREQUISITES' | translate }}: {{ train.prerequisites
-                                                        }}
-                                                    </div>
-                                                    <div *ngIf="train.note" class="text-muted fst-italic">
-                                                        Note: {{ train.note }}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <button class="btn btn-sm btn-outline-primary rounded-pill mt-3 px-3"
-                                                (click)="train.showDetails = !train.showDetails">
-                                                {{ (train.showDetails ? 'DASHBOARD.HIDE_DETAILS' :
-                                                'DASHBOARD.VIEW_DETAILS') | translate }}
-                                                <i class="bi" [class.bi-chevron-down]="!train.showDetails"
-                                                    [class.bi-chevron-up]="train.showDetails"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+                <!-- Training & Certifications (Moved to Main Column) -->
+                <!-- Training hidden from view and export as requested -->
+                <!-- <section class="mb-4 animate__animated animate__fadeInLeft" style="animation-delay: 0.2s;"
+                    *ngIf="resume.training && resume.training.length > 0" data-html2canvas-ignore="true"> -->
+                <!-- ... -->
+                <!-- </section> -->
             </div>
 
             <!-- Right Column -->
