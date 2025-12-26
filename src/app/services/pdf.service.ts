@@ -107,7 +107,8 @@ export class PdfService {
             const canvas = await html2canvas(clone, {
                 scale: 5, // Ultra High Res (Max Sharpness)
                 useCORS: true,
-                allowTaint: false, // Critical: Must be false to use toDataURL
+                allowTaint: false,
+                backgroundColor: '#ffffff', // Fix: Transparent background becomes black in JPEG
                 logging: false,
                 scrollX: 0,
                 scrollY: 0,
